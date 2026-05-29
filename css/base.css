@@ -1,0 +1,53 @@
+:root {
+  --bg: #000;
+  --bg1: #08080f;
+  --bg2: #0f0f1a;
+  --bg3: #16161f;
+  --bg4: #1e1e2a;
+  --bg5: #252535;
+  --glass: rgba(255,255,255,0.035);
+  --glass2: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(0,213,255,0.3);
+  --c1: #00d5ff;
+  --c2: #7c6fff;
+  --c3: #00ff88;
+  --c4: #ff5f6d;
+  --c5: #ffb347;
+  --grad: linear-gradient(135deg,#00d5ff,#7c6fff);
+  --grad2: linear-gradient(135deg,#7c6fff,#ff5f6d);
+  --txt: #fff;
+  --txt2: rgba(255,255,255,0.6);
+  --txt3: rgba(255,255,255,0.3);
+  --r10: 10px;
+  --r14: 14px;
+  --r18: 18px;
+  --r24: 24px;
+  --nav-h: 72px;
+  --safe: env(safe-area-inset-bottom,0px);
+  --top-safe: env(safe-area-inset-top,0px);
+  --font: -apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;
+  --shadow: 0 8px 40px rgba(0,0,0,.7);
+  --glow: 0 0 30px rgba(0,213,255,.2);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--txt);
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
