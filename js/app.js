@@ -250,4 +250,4 @@ window.haptic = haptic;
 window.reg = reg;
 window.App = App;
 
-document.addEventListener('DOMContentLoaded', function () { App.boot(); });
+/* Init is handled by inline script in index.html */

@@ -1,3 +1,23 @@
+/* === ALIASES & STUBS (needed before any reg() call) === */
+var reg = function(id, fn) { App.register(id, fn); };
+
+/* Simple localStorage shim for recovery/legacy screens */
+var S = {
+  g: function(k) { try { return JSON.parse(localStorage.getItem('fos_' + k)); } catch(e) { return null; } },
+  set: function(k, v) { try { localStorage.setItem('fos_' + k, JSON.stringify(v)); } catch(e) {} }
+};
+
+var WE = {
+  getStreak: function() { return 0; },
+  bmr: function() { return 1800; },
+  getWeekVol: function() { return 0; },
+  getSplitDay: function() { return null; },
+  getPrev: function() { return null; }
+};
+
+var ACHS = [];
+function exById() { return { pri: '', sec: '' }; }
+
 /* === AI ENGINE === */
 var AI = {
   readiness: function() {
@@ -167,7 +187,7 @@ reg('welcome', function() {
   h += '<div class="feat-row"><span class="feat">AI Coach</span><span class="feat">Body Clone</span><span class="feat">Smart Splits</span><span class="feat">PR Tracking</span><span class="feat">Recovery</span><span class="feat">Analytics</span></div>';
   h += '<div style="width:100%;max-width:340px;padding:0 0 50px">';
   h += '<button class="btn btn-p mb12" onclick="go(\'onboard\')">Get Started &rarr;</button>';
-  h += '<button class="btn btn-s" onclick="go(\'home\')">Continue with Saved Data</button>';
+  h += '<button class="btn btn-s" onclick="go(\'dashboard\')">Continue with Saved Data</button>';
   h += '</div></div>';
   return h;
 });
@@ -247,24 +267,33 @@ reg('onboard', function() {
 function obInput(v) { _obData[_obSteps[_obStep].key] = v; }
 function obSel(v) { _obData[_obSteps[_obStep].key] = v; go('onboard'); }
 function obD(k, v) { _obData[k] = v; }
-function obNext() {
+async function obNext() {
   var step = _obSteps[_obStep];
-  if (step.type === 'text' && !_obData[step.key]) { toast('Please enter your ' + step.key, 'warn'); return; }
+  if (step.type === 'text' && !(_obData[step.key] || '').trim()) { toast('Please enter your ' + step.key, 'warn'); return; }
   if (step.type === 'choice' && !_obData[step.key]) { toast('Please make a selection', 'warn'); return; }
   if (_obStep < _obSteps.length - 1) { _obStep++; go('onboard'); return; }
-  var u = S.g('user') || {};
-  ['name','gender','goal','exp'].forEach(function(k) { if (_obData[k]) u[k] = _obData[k]; });
-  if (_obData.age) u.age = parseInt(_obData.age);
-  if (_obData.weight) u.weight = parseFloat(_obData.weight);
-  if (_obData.height) u.height = parseFloat(_obData.height);
-  if (_obData.units) u.units = _obData.units;
-  var locMap = {full:['barbell','dumbbell','cables','machine','bar'],home_dumb:['dumbbell','bar'],home_bw:['bar'],hotel:['dumbbell','bands']};
-  u.equipment = locMap[_obData.location] || locMap.full;
-  S.set('user', u);
-  if (_obData.split) S.set('training.split', _obData.split);
-  S.set('onboarding', true); S.set('training.day', 1);
+  var u = await Storage.getUser();
+  if (_obData.name)     u.name     = _obData.name.trim();
+  if (_obData.gender)   u.gender   = _obData.gender;
+  if (_obData.goal)     u.goal     = _obData.goal;
+  if (_obData.exp)      u.exp      = _obData.exp;
+  if (_obData.split)    u.split    = _obData.split;
+  if (_obData.location) {
+    var locMap = {full:['barbell','dumbbell','cables','machine','bar'],home_dumb:['dumbbell','bar'],home_bw:['bar'],hotel:['dumbbell','bands']};
+    u.equipment = locMap[_obData.location] || locMap.full;
+  }
+  if (_obData.age)    u.age    = parseInt(_obData.age) || 25;
+  if (_obData.weight) u.weight = parseFloat(_obData.weight) || 75;
+  if (_obData.height) u.height = parseFloat(_obData.height) || 175;
+  if (_obData.units)  u.units  = _obData.units;
+  u.onboarded = true;
+  u.splitDay = 1;
+  await Storage.setUser(u);
   _obStep = 0; _obData = {};
-  go('home'); toast('Welcome to FitnessOS, ' + (u.name || 'Athlete') + '!');
+  var nav = document.getElementById('nav');
+  if (nav) nav.style.display = '';
+  go('dashboard');
+  toast('Welcome to FitnessOS, ' + (u.name || 'Athlete') + '!');
 }
 function obBack() { if (_obStep > 0) { _obStep--; go('onboard'); } }
 
@@ -461,4 +490,4 @@ reg('recovery', function() {
 });
 
 function updSl(id, val, unit) { var el = document.getElementById(id + '-v'); if (el) el.textContent = val + (unit || ''); S.set('recovery.' + id, parseFloat(val)); }
-function saveRecovery() { toast('Recovery logged!'); go('home'); }
+function saveRecovery() { toast('Recovery logged!'); go('dashboard'); }
