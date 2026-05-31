@@ -67,3 +67,10 @@
   </script>
 </body>
 </html>
+<script>
+  S.init();
+  applyTheme(S.g('user.theme') || 'carbon');
+  buildNav();
+  initCanvas();
+  if (!S.g('onboarded')) { go('onboarding'); } else { go('dashboard'); }
+</script>

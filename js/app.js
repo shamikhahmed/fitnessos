@@ -896,7 +896,7 @@ window.buildNav = buildNav;
 /* ══════════════════════════════════════════════════════
    APP INIT
 ══════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
+// DISABLED window.addEventListener("load", () => {
   S.init();
   applyTheme(S.g('user.theme') || 'carbon');
   buildNav();
