@@ -1,216 +1,63 @@
-/* ══════════════════════════════════════════════
-   FITNESSOS — PREMIUM DESIGN SYSTEM
-   WHOOP × Apple Health aesthetic
-   Base: Dark theme as :root
-══════════════════════════════════════════════ */
+/* FitnessOS Pro — Base: variables, reset, themes, typography */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root,
-[data-theme="dark"] {
-  /* Backgrounds */
-  --bg:  #050505;
-  --bg2: #0d0d0d;
-  --bg3: #141414;
-  --bg4: #1c1c1c;
-  --bg5: #242424;
-
-  /* Accent */
-  --accent:       #10B981;
-  --accent-glow:  rgba(16, 185, 129, 0.16);
-  --accent-dim:   rgba(16, 185, 129, 0.08);
-  --accent-border:rgba(16, 185, 129, 0.28);
-
-  /* Text */
-  --txt:  #ffffff;
-  --txt2: rgba(255,255,255,0.70);
-  --txt3: rgba(255,255,255,0.38);
-  --txt4: rgba(255,255,255,0.12);
-
-  /* Borders */
-  --border:  rgba(255,255,255,0.06);
-  --border2: rgba(255,255,255,0.10);
-
-  /* Semantic colors — shared across all themes */
-  --ok:     #34C759;
-  --ok-glow:rgba(52,199,89,0.16);
-  --warn:   #FF9F0A;
-  --warn-glow:rgba(255,159,10,0.16);
-  --err:    #FF453A;
-  --err-glow:rgba(255,69,58,0.14);
-  --info:   #0A84FF;
-  --info-glow:rgba(10,132,255,0.16);
-  --purple: #BF5AF2;
-  --purple-glow:rgba(191,90,242,0.16);
-
-  /* Layout */
-  --nav-h:   72px;
-  --safe:    env(safe-area-inset-bottom, 0px);
-  --top-safe:env(safe-area-inset-top, 0px);
-
-  /* Border radius */
-  --r8:  8px;
-  --r12: 12px;
-  --r16: 16px;
-  --r20: 20px;
-  --r24: 24px;
-
-  /* Motion */
-  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease:   cubic-bezier(0.22, 1.00, 0.36, 1);
-
-  /* Shadows */
-  --shadow-sm: 0 2px 12px rgba(0,0,0,0.5);
-  --shadow:    0 8px 32px rgba(0,0,0,0.7);
-  --shadow-lg: 0 20px 60px rgba(0,0,0,0.8);
-
-  /* Font */
-  --font: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+:root, [data-theme="electric"] {
+  --bg: #000000; --bg1: #0a0a0f; --bg2: #111118; --bg3: #1a1a24; --bg4: #222232; --bg5: #2a2a3a;
+  --c1: #00d5ff; --c2: #6b5fff; --c3: #00ff88; --c4: #ff6b6b; --c5: #ffb347; --c6: #ff6bff;
+  --grad: linear-gradient(135deg, #00d5ff, #6b5fff);
+  --grad2: linear-gradient(135deg, #6b5fff, #ff6bff);
+  --grad3: linear-gradient(135deg, #00ff88, #00d5ff);
+  --grad4: linear-gradient(135deg, #ff6b6b, #ffb347);
+  --glass: rgba(255,255,255,0.04); --glass2: rgba(255,255,255,0.07); --glass3: rgba(255,255,255,0.11);
+  --border: rgba(255,255,255,0.08); --border2: rgba(0,213,255,0.25);
+  --txt: #ffffff; --txt2: rgba(255,255,255,0.65); --txt3: rgba(255,255,255,0.35); --txt4: rgba(255,255,255,0.15);
+  --shadow: 0 8px 32px rgba(0,0,0,0.6); --shadow-c: 0 4px 24px rgba(0,213,255,0.2);
+  --r8: 8px; --r12: 12px; --r16: 16px; --r20: 20px; --r24: 24px; --r32: 32px;
+  --spring: cubic-bezier(0.34,1.56,0.64,1); --ease: cubic-bezier(0.22,1,0.36,1);
+  --nav-h: 76px; --safe: env(safe-area-inset-bottom, 0px); --top-safe: env(safe-area-inset-top, 0px);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
 }
 
-/* ── RESET ────────────────────────────────── */
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+[data-theme="forest"] {
+  --bg: #020a06; --bg1: #050f08; --bg2: #0a1a0f; --bg3: #112918; --bg4: #1a3822; --bg5: #224730;
+  --c1: #10B981; --c2: #059669; --c3: #34D399; --c4: #f87171; --c5: #fbbf24; --c6: #a78bfa;
+  --grad: linear-gradient(135deg, #10B981, #059669); --grad2: linear-gradient(135deg, #059669, #34D399);
+  --grad3: linear-gradient(135deg, #34D399, #10B981); --grad4: linear-gradient(135deg, #f87171, #fbbf24);
+  --border2: rgba(16,185,129,0.25); --shadow-c: 0 4px 24px rgba(16,185,129,0.2);
 }
 
-html {
-  height: 100%;
-  overflow: hidden;
-  font-size: 16px;
-  -webkit-text-size-adjust: 100%;
+[data-theme="navy"] {
+  --bg: #020408; --bg1: #04080f; --bg2: #060d1f; --bg3: #0d1a35; --bg4: #142548; --bg5: #1c3060;
+  --c1: #3B82F6; --c2: #1D4ED8; --c3: #60A5FA; --c4: #f87171; --c5: #fbbf24; --c6: #a78bfa;
+  --grad: linear-gradient(135deg, #3B82F6, #1D4ED8); --grad2: linear-gradient(135deg, #1D4ED8, #60A5FA);
+  --grad3: linear-gradient(135deg, #60A5FA, #3B82F6); --grad4: linear-gradient(135deg, #f87171, #fbbf24);
+  --border2: rgba(59,130,246,0.25); --shadow-c: 0 4px 24px rgba(59,130,246,0.2);
 }
 
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--txt);
-  height: 100%;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: "kern" 1;
-}
-
-button, input, select, textarea {
-  font-family: var(--font);
-  color: var(--txt);
-  background: none;
-}
-
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-input[type="number"] { -moz-appearance: textfield; }
-
-select { -webkit-appearance: none; appearance: none; }
-a { color: var(--accent); text-decoration: none; }
-img { display: block; max-width: 100%; }
+html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--txt); overflow: hidden; overscroll-behavior: none; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+h1 { font-size: 32px; font-weight: 900; letter-spacing: -2px; line-height: 1.1; }
+h2 { font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+h3 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+h4 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
 svg { display: block; }
+input, button, select, textarea { font-family: var(--font); color: inherit; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type="number"] { -moz-appearance: textfield; }
+::placeholder { color: rgba(255,255,255,0.38); }
+::-webkit-scrollbar { display: none; }
+* { -webkit-tap-highlight-color: transparent; }
+.num { font-variant-numeric: tabular-nums; }
+.label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; color: var(--txt3); }
 
-/* ── KEYFRAMES ────────────────────────────── */
-@keyframes screenEnter {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  from { transform: translateY(0); }
-  to   { transform: translateY(100%); }
-}
-
-@keyframes popIn {
-  0%   { opacity: 0; transform: scale(0.88); }
-  70%  { transform: scale(1.04); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-@keyframes prBounce {
-  0%   { opacity: 0; transform: scale(0) rotate(-12deg); }
-  55%  { transform: scale(1.18) rotate(4deg); opacity: 1; }
-  75%  { transform: scale(0.94) rotate(-2deg); }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-
-@keyframes setDone {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.14); }
-  100% { transform: scale(1); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes shimmer {
-  from { background-position: -200% center; }
-  to   { background-position:  200% center; }
-}
-
-/* ── SPINNER ─────────────────────────────── */
-.spinner {
-  width: 30px;
-  height: 30px;
-  border: 2.5px solid var(--bg4);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.65s linear infinite;
-}
-
-/* ── TYPOGRAPHY UTILITIES ────────────────── */
-.hero-stat,
-.hero-n {
-  font-size: 88px;
-  font-weight: 900;
-  letter-spacing: -5px;
-  line-height: 0.9;
-  font-variant-numeric: tabular-nums;
-  color: var(--accent);
-}
-
-.hero-l {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--txt3);
-  margin-top: 6px;
-}
-
-/* ── SPACING UTILITIES ───────────────────── */
-.mb4  { margin-bottom: 4px; }
-.mb8  { margin-bottom: 8px; }
-.mb12 { margin-bottom: 12px; }
-.mb16 { margin-bottom: 16px; }
-.mb20 { margin-bottom: 20px; }
-.mb28 { margin-bottom: 28px; }
-.mt4  { margin-top: 4px; }
-.mt8  { margin-top: 8px; }
-.mt12 { margin-top: 12px; }
-.mt16 { margin-top: 16px; }
-
-.pad   { padding: 0 20px; }
-.pad12 { padding: 0 12px; }
-
-/* ── VISUALLY HIDDEN ─────────────────────── */
-.sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-}
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes popIn { 0% { opacity:0; transform:scale(0.85); } 70% { transform:scale(1.05); } 100% { opacity:1; transform:scale(1); } }
+@keyframes breathe { 0%,100% { transform:scale(1); opacity:0.8; } 50% { transform:scale(1.08); opacity:1; } }
+@keyframes spin { to { transform:rotate(360deg); } }
+@keyframes pulse { 0%,100% { box-shadow:0 0 0 0 var(--c1); } 50% { box-shadow:0 0 0 12px rgba(0,213,255,0); } }
+@keyframes shimmer { 0% { background-position:-200% center; } 100% { background-position:200% center; } }
+@keyframes prBounce { 0% { opacity:0; transform:scale(0) rotate(-12deg); } 55% { transform:scale(1.18) rotate(4deg); opacity:1; } 100% { transform:scale(1) rotate(0); opacity:1; } }

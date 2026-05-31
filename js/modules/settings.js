@@ -1,317 +1,671 @@
 'use strict';
 
-App.register('settings', async function () {
-  const user = await Storage.getUser();
+/* ═══════════════════════════════════════════════════
+   SETTINGS SCREEN
+═══════════════════════════════════════════════════ */
+reg('settings', function() {
+  const user = S.g('user') || {};
+  const prefs = S.g('prefs') || {};
+  const nav = S.g('nav') || {};
+  const tabs = nav.tabs || ['dashboard','workouts','progress','ai','settings'];
+  const split = S.g('user.split') || 'ppl';
+  const splitDay = S.g('user.splitDay') || 1;
+  const splitData = (typeof SPLITS !== 'undefined') ? SPLITS[split] : null;
+  const tdee = calcTDEE(user);
+  const themes = [
+    { id:'electric', name:'Electric', colors:['#00d5ff','#6b5fff'] },
+    { id:'forest', name:'Forest', colors:['#10B981','#059669'] },
+    { id:'navy', name:'Navy', colors:['#3B82F6','#1D4ED8'] }
+  ];
+  const curTheme = user.theme || 'electric';
 
-  /* TDEE calculation (Mifflin-St Jeor) */
-  function calcTDEE(u) {
-    const w = u.units === 'imperial' ? (u.weight || 75) * 0.453592 : (u.weight || 75);
-    const h = u.units === 'imperial' ? (u.height || 70) * 2.54 : (u.height || 175);
-    const a = u.age || 25;
-    let bmr = u.gender === 'female'
-      ? 10 * w + 6.25 * h - 5 * a - 161
-      : 10 * w + 6.25 * h - 5 * a + 5;
-    const actMult = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, veryActive: 1.9 };
-    return Math.round(bmr * (actMult[u.activityLevel] || 1.55));
+  function toggle(key, val) {
+    return '<button class="toggle' + (val?' on':'') + '" onclick="togglePref(\'' + key + '\')" touch-action="manipulation"></button>';
   }
 
-  const tdee = calcTDEE(user);
-  const unit = user.units === 'imperial' ? 'lbs' : 'kg';
-  const heightUnit = user.units === 'imperial' ? 'in' : 'cm';
+  function row(label, val, right) {
+    return '<div class="settings-row"><div><div class="settings-row-l">' + esc(label) + '</div>' +
+      (val ? '<div style="font-size:12px;color:var(--txt3);margin-top:2px">' + esc(val) + '</div>' : '') + '</div>' +
+      (right||'') + '</div>';
+  }
 
-  const MACROS_PRESETS = [
-    { name: 'Build Muscle', p: 35, c: 45, f: 20 },
-    { name: 'Fat Loss', p: 40, c: 35, f: 25 },
-    { name: 'Strength', p: 30, c: 50, f: 20 },
-    { name: 'Keto', p: 30, c: 10, f: 60 },
-    { name: 'Balanced', p: 30, c: 40, f: 30 },
+  const allScreens = [
+    {id:'dashboard',l:'Home'},
+    {id:'workouts',l:'Workout'},
+    {id:'progress',l:'Progress'},
+    {id:'ai',l:'AI Coach'},
+    {id:'bodystats',l:'Body Stats'},
+    {id:'cardio',l:'Cardio'},
+    {id:'nutrition',l:'Nutrition'},
+    {id:'injuries',l:'Injuries'},
+    {id:'recovery',l:'Recovery'},
+    {id:'settings',l:'Settings'}
   ];
 
-  const THEMES = [
-    { id: 'dark',   name: 'Dark',   cls: 'swatch-dark' },
-    { id: 'forest', name: 'Forest', cls: 'swatch-forest' },
-    { id: 'ocean',  name: 'Ocean',  cls: 'swatch-ocean' },
-    { id: 'rose',   name: 'Rose',   cls: 'swatch-rose' },
-    { id: 'slate',  name: 'Slate',  cls: 'swatch-slate' },
-    { id: 'amber',  name: 'Amber',  cls: 'swatch-amber' },
-  ];
+  const navSlots = tabs.map((id,i) => {
+    const m = (typeof NAV_META !== 'undefined') ? (NAV_META[id]||NAV_META.dashboard) : {};
+    return '<div class="nav-slot">' +
+      '<div style="display:flex;align-items:center;gap:12px;flex:1">' +
+      '<div style="font-size:20px;color:var(--c1)">' + (m.icon ? '<svg width="20" height="20" viewBox="0 0 24 24" style="fill:none;stroke:var(--c1);stroke-width:1.8">' + '' + '</svg>' : '📌') + '</div>' +
+      '<div class="nav-slot-name">' + esc(m.label || id) + '</div>' +
+      '</div>' +
+      '<div class="nav-slot-change" onclick="openNavPicker(' + i + ')">Change</div>' +
+      '</div>';
+  }).join('');
 
-  const SPLITS_META = {
-    ppl: 'Push Pull Legs — 6 days/week',
-    ul:  'Upper Lower — 4 days/week',
-    fb:  'Full Body — 3 days/week',
-    bro: 'Bro Split — 5 days/week',
-    str: 'Strength — 4 days/week',
-  };
+  return topbar('Settings') +
 
-  let h = App.topbar('Settings');
-  h += '<div style="padding:14px 16px 0">';
+  '<div class="settings-section">' +
+  '<div class="settings-section-title">Profile</div>' +
+  row('Name', user.name||'Not set', '<button class="btn btn-s btn-sm" onclick="editProfile(\'name\')">Edit</button>') +
+  row('Age', user.age ? user.age + ' years' : 'Not set', '<button class="btn btn-s btn-sm" onclick="editProfile(\'age\')">Edit</button>') +
+  row('Gender', user.gender ? (user.gender.charAt(0).toUpperCase()+user.gender.slice(1)) : 'Not set') +
+  row('Height', user.height ? user.height + (user.units==='imperial'?'in':'cm') : 'Not set') +
+  row('Weight', user.weight ? user.weight + (user.units==='imperial'?'lb':'kg') : 'Not set') +
+  row('Units', user.units||'metric', '<button class="btn btn-s btn-sm" onclick="toggleUnits()">Toggle</button>') +
+  row('Goal', user.goal ? user.goal.charAt(0).toUpperCase()+user.goal.slice(1) : 'Hypertrophy') +
+  row('TDEE', tdee + ' kcal/day', '<button class="btn btn-s btn-sm" onclick="recalcTDEE()">Recalc</button>') +
+  '</div>' +
 
-  /* ── Profile ── */
-  h += App.sh('Profile');
-  h += '<div class="card" style="margin:0 0 12px">';
-  h += '<div class="fw"><label class="field-label">Name</label><input id="s-name" class="field" value="' + App.esc(user.name || '') + '" placeholder="Your name" onchange="Cfg.save()"></div>';
-  h += '<div class="g2">';
-  h += '<div class="fw"><label class="field-label">Age</label><input id="s-age" class="field" type="number" inputmode="numeric" value="' + (user.age || '') + '" onchange="Cfg.save()"></div>';
-  h += '<div class="fw"><label class="field-label">Gender</label><select id="s-gender" class="field" onchange="Cfg.save()">';
-  [['male','Male'],['female','Female'],['neutral','Other']].forEach(function (o) {
-    h += '<option value="' + o[0] + '"' + (user.gender === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
-  });
-  h += '</select></div>';
-  h += '<div class="fw"><label class="field-label">Weight (' + unit + ')</label><input id="s-weight" class="field" type="number" inputmode="decimal" step="0.1" value="' + (user.weight || '') + '" onchange="Cfg.save()"></div>';
-  h += '<div class="fw"><label class="field-label">Height (' + heightUnit + ')</label><input id="s-height" class="field" type="number" inputmode="decimal" step="0.5" value="' + (user.height || '') + '" onchange="Cfg.save()"></div>';
-  h += '<div class="fw"><label class="field-label">Goal Weight</label><input id="s-goalw" class="field" type="number" inputmode="decimal" step="0.1" value="' + (user.goalWeight || '') + '" onchange="Cfg.save()"></div>';
-  h += '<div class="fw"><label class="field-label">Activity Level</label><select id="s-activity" class="field" onchange="Cfg.save()">';
-  [['sedentary','Sedentary'],['light','Light (1-2 days)'],['moderate','Moderate (3-5 days)'],['active','Active (6-7 days)'],['veryActive','Very Active']].forEach(function (o) {
-    h += '<option value="' + o[0] + '"' + (user.activityLevel === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
-  });
-  h += '</select></div>';
-  h += '</div>';
-  h += '<div class="fw"><label class="field-label">Fitness Goal</label><select id="s-goal" class="field" onchange="Cfg.save()">';
-  [['hypertrophy','Build Muscle'],['strength','Get Stronger'],['fat_loss','Lose Fat'],['recomp','Body Recomposition']].forEach(function (o) {
-    h += '<option value="' + o[0] + '"' + (user.goal === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
-  });
-  h += '</select></div>';
-  h += '<div class="fw"><label class="field-label">Experience</label><select id="s-exp" class="field" onchange="Cfg.save()">';
-  [['beginner','Beginner'],['intermediate','Intermediate'],['advanced','Advanced']].forEach(function (o) {
-    h += '<option value="' + o[0] + '"' + (user.exp === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
-  });
-  h += '</select></div>';
-  h += '</div>';
+  '<div class="settings-section">' +
+  '<div class="settings-section-title">Training</div>' +
+  row('Split', splitData ? splitData.n : split, '<button class="btn btn-s btn-sm" onclick="openSplitPicker()">Change</button>') +
+  row('Current Day', splitData ? 'Day ' + splitDay + ': ' + (splitData.schedule[splitDay-1]||{}).n : 'Day '+splitDay,
+    '<div style="display:flex;gap:6px">' +
+    '<button class="btn btn-s btn-sm" onclick="prevSplitDay()">←</button>' +
+    '<button class="btn btn-s btn-sm" onclick="nextSplitDay()">→</button>' +
+    '</div>') +
+  row('Weekly Goal', (user.weeklyGoal||4) + ' workouts/week', '<button class="btn btn-s btn-sm" onclick="editProfile(\'weeklyGoal\')">Edit</button>') +
+  '<div class="toggle-wrap" style="padding:14px 16px"><div class="toggle-info"><div class="toggle-label">Rest Timer</div><div class="toggle-sub">Auto-start rest between sets</div></div>' + toggle('restTimer', prefs.restTimer !== false) + '</div>' +
+  '<div class="toggle-wrap" style="padding:14px 16px"><div class="toggle-info"><div class="toggle-label">Auto-Progression</div><div class="toggle-sub">Suggest weight increases</div></div>' + toggle('autoProgress', prefs.autoProgress !== false) + '</div>' +
+  row('Rest Timer', (user.restSecs||90) + 's', '<button class="btn btn-s btn-sm" onclick="editRestTimer()">Edit</button>') +
+  '</div>' +
 
-  /* ── Units ── */
-  h += App.sh('Units');
-  h += '<div class="card" style="margin:0 0 12px">';
-  h += '<div class="tog-row"><div><div class="tog-t">Weight Unit</div><div class="tog-s">kg or lbs</div></div>';
-  h += '<div style="display:flex;gap:8px">';
-  h += '<button class="btn btn-sm' + (user.units === 'metric' ? ' btn-primary' : ' btn-secondary') + '" onclick="Cfg.setUnit(\'metric\')">kg</button>';
-  h += '<button class="btn btn-sm' + (user.units === 'imperial' ? ' btn-primary' : ' btn-secondary') + '" onclick="Cfg.setUnit(\'imperial\')">lbs</button>';
-  h += '</div></div>';
-  h += '<div class="tog-row"><div><div class="tog-t">Distance Unit</div><div class="tog-s">km or miles</div></div>';
-  h += '<div style="display:flex;gap:8px">';
-  h += '<button class="btn btn-sm' + (user.distanceUnit !== 'miles' ? ' btn-primary' : ' btn-secondary') + '" onclick="Cfg.setDistUnit(\'km\')">km</button>';
-  h += '<button class="btn btn-sm' + (user.distanceUnit === 'miles' ? ' btn-primary' : ' btn-secondary') + '" onclick="Cfg.setDistUnit(\'miles\')">mi</button>';
-  h += '</div></div></div>';
+  '<div class="settings-section">' +
+  '<div class="settings-section-title">Targets</div>' +
+  '<div style="padding:0 16px">' +
+  '<div class="slider-wrap"><div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:600">🔥 Calories</span><span style="font-size:14px;font-weight:700;color:var(--c1)">' + (user.calorieTarget||2000) + ' kcal</span></div>' +
+  '<input type="range" min="1200" max="4000" step="50" value="' + (user.calorieTarget||2000) + '" oninput="updateTarget(\'calorieTarget\',this.value,this)"></div>' +
+  '<div class="slider-wrap"><div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:600">🥩 Protein</span><span style="font-size:14px;font-weight:700;color:var(--c1)">' + (user.proteinTarget||150) + 'g</span></div>' +
+  '<input type="range" min="50" max="300" step="5" value="' + (user.proteinTarget||150) + '" oninput="updateTarget(\'proteinTarget\',this.value,this)"></div>' +
+  '<div class="slider-wrap"><div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:600">🍞 Carbs</span><span style="font-size:14px;font-weight:700;color:var(--c5)">' + (user.carbTarget||200) + 'g</span></div>' +
+  '<input type="range" min="50" max="500" step="5" value="' + (user.carbTarget||200) + '" oninput="updateTarget(\'carbTarget\',this.value,this)"></div>' +
+  '<div class="slider-wrap"><div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:600">🥑 Fat</span><span style="font-size:14px;font-weight:700;color:var(--c4)">' + (user.fatTarget||65) + 'g</span></div>' +
+  '<input type="range" min="20" max="200" step="5" value="' + (user.fatTarget||65) + '" oninput="updateTarget(\'fatTarget\',this.value,this)"></div>' +
+  '<div class="slider-wrap"><div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:600">💧 Water</span><span style="font-size:14px;font-weight:700;color:var(--c1)">' + (user.waterTarget||8) + ' glasses</span></div>' +
+  '<input type="range" min="4" max="16" step="1" value="' + (user.waterTarget||8) + '" oninput="updateTarget(\'waterTarget\',this.value,this)"></div>' +
+  '</div></div>' +
 
-  /* ── TDEE & Nutrition Targets ── */
-  h += App.sh('Nutrition Targets');
-  h += '<div class="card" style="margin:0 0 12px">';
-  h += '<div style="background:var(--bg4);border-radius:12px;padding:12px 14px;margin-bottom:12px">';
-  h += '<div style="font-size:13px;color:var(--txt3);margin-bottom:2px">Estimated TDEE (Mifflin-St Jeor)</div>';
-  h += '<div style="font-size:24px;font-weight:900;color:var(--accent)">' + tdee + ' kcal</div>';
-  h += '</div>';
-  h += '<div class="g2">';
-  h += '<div class="fw"><label class="field-label">Daily Calories</label><input id="s-cal" class="field" type="number" inputmode="numeric" value="' + (user.calorieTarget || tdee) + '" onchange="Cfg.save()"></div>';
-  h += '<div class="fw"><label class="field-label">Weekly Workouts Goal</label><input id="s-wkgoal" class="field" type="number" inputmode="numeric" value="' + (user.weeklyGoal || 4) + '" onchange="Cfg.save()"></div>';
-  h += '<div class="fw"><label class="field-label">Protein (g)</label><input id="s-prot" class="field" type="number" inputmode="numeric" value="' + (user.proteinTarget || 180) + '" onchange="Cfg.save()"></div>';
-  h += '<div class="fw"><label class="field-label">Carbs (g)</label><input id="s-carb" class="field" type="number" inputmode="numeric" value="' + (user.carbTarget || 270) + '" onchange="Cfg.save()"></div>';
-  h += '<div class="fw"><label class="field-label">Fat (g)</label><input id="s-fat" class="field" type="number" inputmode="numeric" value="' + (user.fatTarget || 80) + '" onchange="Cfg.save()"></div>';
-  h += '<div class="fw"><label class="field-label">Water (glasses)</label><input id="s-water" class="field" type="number" inputmode="numeric" value="' + (user.waterTarget || 8) + '" onchange="Cfg.save()"></div>';
-  h += '</div>';
-  h += '<div style="font-size:12px;color:var(--txt3);margin-bottom:8px">Macro presets:</div>';
-  h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  MACROS_PRESETS.forEach(function (mp) {
-    h += '<button class="btn btn-secondary btn-xs" onclick="Cfg.applyMacroPreset(' + mp.p + ',' + mp.c + ',' + mp.f + ')">' + mp.name + '</button>';
-  });
-  h += '</div></div>';
+  '<div class="settings-section">' +
+  '<div class="settings-section-title">Navigation (Customise Tabs)</div>' +
+  navSlots +
+  '<div style="padding:12px 16px"><button class="btn btn-s btn-sm" onclick="resetNav()">Reset to default</button></div>' +
+  '</div>' +
 
-  /* ── Training ── */
-  h += App.sh('Training');
-  h += '<div class="card" style="margin:0 0 12px">';
-  h += '<div class="fw"><label class="field-label">Training Split</label><select id="s-split" class="field" onchange="Cfg.save()">';
-  Object.keys(SPLITS_META).forEach(function (k) {
-    h += '<option value="' + k + '"' + (user.split === k ? ' selected' : '') + '>' + SPLITS_META[k] + '</option>';
-  });
-  h += '</select></div>';
-  h += '<div class="tog-row"><div><div class="tog-t">Rest Timer</div><div class="tog-s">Auto-start after each set</div></div>';
-  h += '<label class="tgl"><input id="s-rest" type="checkbox"' + (user.restTimer !== false ? ' checked' : '') + ' onchange="Cfg.save()"><div class="tgl-track"></div><div class="tgl-thumb"></div></label></div>';
-  h += '<div class="tog-row"><div class="tog-t">Rest Duration</div>';
-  h += '<select id="s-restsecs" class="field" style="width:90px;padding:9px" onchange="Cfg.save()">';
-  [60, 90, 120, 180, 240].forEach(function (v) {
-    h += '<option value="' + v + '"' + ((user.restSecs || 90) === v ? ' selected' : '') + '>' + (v >= 60 ? Math.floor(v/60) + (v % 60 ? ':' + (v%60<10?'0':'') + v%60 : ' min') : v + 's') + '</option>';
-  });
-  h += '</select></div></div>';
+  '<div class="settings-section">' +
+  '<div class="settings-section-title">Appearance</div>' +
+  '<div class="theme-cards">' +
+  themes.map(t =>
+    '<div class="theme-card' + (curTheme===t.id?' on':'') + '" onclick="setTheme(\'' + t.id + '\')">' +
+    '<div class="theme-swatch" style="background:linear-gradient(135deg,' + t.colors[0] + ',' + t.colors[1] + ')"></div>' +
+    '<div class="theme-name">' + t.name + '</div>' +
+    '</div>'
+  ).join('') +
+  '</div></div>' +
 
-  /* ── Theme ── */
-  h += App.sh('Theme');
-  h += '<div class="card" style="margin:0 0 12px">';
-  h += '<div style="display:flex;gap:14px;flex-wrap:wrap">';
-  THEMES.forEach(function (t) {
-    h += '<div style="display:flex;flex-direction:column;align-items:center;gap:6px">';
-    h += '<div class="theme-swatch ' + t.cls + (user.theme === t.id ? ' on' : '') + '" onclick="Cfg.setTheme(\'' + t.id + '\')" title="' + t.name + '"></div>';
-    h += '<span style="font-size:10px;color:var(--txt3)">' + t.name + '</span></div>';
-  });
-  h += '</div></div>';
+  '<div class="settings-section">' +
+  '<div class="settings-section-title">Data</div>' +
+  '<div style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:14px">' +
+  '<button class="btn btn-s" onclick="exportData()">📤 Export All Data (JSON)</button>' +
+  '<button class="btn btn-s" onclick="importData()">📥 Import from JSON</button>' +
+  '<button class="btn btn-r" onclick="clearData()">🗑️ Clear All Data</button>' +
+  '</div></div>' +
 
-  /* ── Data ── */
-  h += App.sh('Data & Backup');
-  h += '<div class="card" style="margin:0 0 12px">';
-  h += '<button class="btn btn-secondary mb12" onclick="Cfg.exportData()">📥 Export JSON Backup</button>';
-  h += '<button class="btn btn-secondary mb12" onclick="Cfg.importData()">📤 Import Backup</button>';
-  h += '<button class="btn btn-secondary mb12" onclick="Cfg.loadDemo()">🎭 Load Demo Data</button>';
-  h += '<button class="btn btn-err" onclick="Cfg.clearAll()">🗑️ Clear All Data</button>';
-  h += '</div>';
-
-  /* ── About ── */
-  h += App.sh('About');
-  h += '<div class="card" style="margin:0 0 20px;text-align:center">';
-  h += '<div style="font-size:48px;margin-bottom:8px">⚡</div>';
-  h += '<div style="font-size:20px;font-weight:900;letter-spacing:-.4px">FitnessOS v2</div>';
-  h += '<div style="font-size:13px;color:var(--txt3);margin-top:6px;line-height:1.6">';
-  h += 'Standalone PWA · Offline capable<br>';
-  h += '5 tabs · 100+ exercises · 200+ foods · 6 themes</div>';
-  h += '</div>';
-
-  h += '</div>';
-  return h;
+  '<div class="settings-section">' +
+  '<div class="settings-section-title">About</div>' +
+  '<div style="padding:16px;text-align:center;color:var(--txt3);font-size:13px;line-height:1.8">' +
+  '<div style="font-size:20px;margin-bottom:8px">⚡</div>' +
+  '<div style="font-weight:700;color:var(--txt)">FitnessOS Pro v3.0</div>' +
+  '<div>Built by Shamikh Ahmed</div>' +
+  '<div style="margin-top:8px;color:var(--txt4)">Works offline · No server · Your data stays on device</div>' +
+  '</div></div>' +
+  '<div style="height:8px"></div>';
 });
 
-const Cfg = {
-  save: async function () {
-    const user = await Storage.getUser();
-    const f = function (id) { const el = document.getElementById(id); return el ? el.value : null; };
-    if (f('s-name') !== null)     user.name          = f('s-name').trim();
-    if (f('s-age') !== null)      user.age           = parseInt(f('s-age')) || user.age;
-    if (f('s-gender') !== null)   user.gender        = f('s-gender');
-    if (f('s-weight') !== null)   user.weight        = parseFloat(f('s-weight')) || user.weight;
-    if (f('s-height') !== null)   user.height        = parseFloat(f('s-height')) || user.height;
-    if (f('s-goalw') !== null)    user.goalWeight    = parseFloat(f('s-goalw')) || user.goalWeight;
-    if (f('s-activity') !== null) user.activityLevel = f('s-activity');
-    if (f('s-goal') !== null)     user.goal          = f('s-goal');
-    if (f('s-exp') !== null)      user.exp           = f('s-exp');
-    if (f('s-cal') !== null)      user.calorieTarget = parseInt(f('s-cal')) || user.calorieTarget;
-    if (f('s-wkgoal') !== null)   user.weeklyGoal    = parseInt(f('s-wkgoal')) || user.weeklyGoal;
-    if (f('s-prot') !== null)     user.proteinTarget = parseInt(f('s-prot')) || user.proteinTarget;
-    if (f('s-carb') !== null)     user.carbTarget    = parseInt(f('s-carb')) || user.carbTarget;
-    if (f('s-fat') !== null)      user.fatTarget     = parseInt(f('s-fat')) || user.fatTarget;
-    if (f('s-water') !== null)    user.waterTarget   = parseInt(f('s-water')) || user.waterTarget;
-    if (f('s-split') !== null)    user.split         = f('s-split');
-    const restEl = document.getElementById('s-rest');
-    if (restEl !== null)          user.restTimer     = restEl ? restEl.checked : user.restTimer;
-    if (f('s-restsecs') !== null) user.restSecs      = parseInt(f('s-restsecs')) || user.restSecs;
-    await Storage.setUser(user);
-    App.toast('Saved', 'ok');
-  },
+function togglePref(key) {
+  const prefs = S.g('prefs') || {};
+  prefs[key] = !(prefs[key] !== false);
+  S.set('prefs', prefs);
+  go('settings');
+}
+window.togglePref = togglePref;
 
-  setUnit: async function (unit) {
-    const user = await Storage.getUser();
-    user.units = unit;
-    await Storage.setUser(user);
-    go('settings');
-  },
-
-  setDistUnit: async function (unit) {
-    const user = await Storage.getUser();
-    user.distanceUnit = unit;
-    await Storage.setUser(user);
-    go('settings');
-  },
-
-  setTheme: async function (theme) {
-    const user = await Storage.getUser();
-    user.theme = theme;
-    await Storage.setUser(user);
-    App.applyTheme(theme);
-    go('settings');
-  },
-
-  applyMacroPreset: async function (p, c, f) {
-    const user = await Storage.getUser();
-    const total = user.calorieTarget || 2500;
-    user.proteinTarget = Math.round(total * p / 100 / 4);
-    user.carbTarget    = Math.round(total * c / 100 / 4);
-    user.fatTarget     = Math.round(total * f / 100 / 9);
-    await Storage.setUser(user);
-    App.toast('Macro preset applied');
-    go('settings');
-  },
-
-  exportData: async function () {
-    const data = await Storage.exportAll();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'fitnessos-backup-' + App.today() + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    App.toast('Exported!');
-  },
-
-  importData: function () {
-    const inp = document.createElement('input');
-    inp.type = 'file';
-    inp.accept = '.json';
-    inp.onchange = async function (e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async function (ev) {
-        try {
-          const data = JSON.parse(ev.target.result);
-          await Storage.importAll(data);
-          App.toast('Import successful!');
-          go('dashboard');
-        } catch (err) {
-          App.toast('Invalid backup file', 'err');
-        }
-      };
-      reader.readAsText(file);
-    };
-    inp.click();
-  },
-
-  loadDemo: async function () {
-    const user = await Storage.getUser();
-    user.name = 'Alex';
-    user.age = 27;
-    user.gender = 'male';
-    user.weight = 80;
-    user.height = 178;
-    user.goal = 'hypertrophy';
-    user.exp = 'intermediate';
-    user.calorieTarget = 2800;
-    user.proteinTarget = 200;
-    user.carbTarget = 290;
-    user.fatTarget = 90;
-    user.waterTarget = 8;
-    user.weeklyGoal = 4;
-    user.onboarded = true;
-    await Storage.setUser(user);
-
-    const now = new Date();
-    const exercises = [
-      { name: 'Barbell Bench Press', sets: [{weight:100,reps:8,done:true},{weight:100,reps:8,done:true},{weight:100,reps:7,done:true},{weight:97.5,reps:8,done:true}], vol: 2780, prCount: 0 },
-      { name: 'Overhead Press', sets: [{weight:60,reps:8,done:true},{weight:60,reps:8,done:true},{weight:60,reps:7,done:true}], vol: 1380, prCount: 0 },
-      { name: 'Lateral Raise', sets: [{weight:15,reps:12,done:true},{weight:15,reps:12,done:true},{weight:15,reps:10,done:true}], vol: 510, prCount: 0 },
-    ];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now); d.setDate(d.getDate() - i);
-      if (i % 2 === 0) continue;
-      await Storage.set('workouts', { date: d.toISOString(), splitDay: i % 3 === 0 ? 'Push A' : i % 3 === 1 ? 'Pull A' : 'Legs A', exercises: exercises, totalVol: 4670, duration: 55, prCount: 0 });
-    }
-
-    for (let i = 7; i >= 0; i--) {
-      const d = new Date(now); d.setDate(d.getDate() - i * 3);
-      await Storage.set('bodyStats', { date: d.toISOString(), weight: 80 + (i * 0.2 - 0.8), bodyFat: 15 - i * 0.1, measurements: { chest: 106, waist: 82, hips: 98 }, photos: {} });
-    }
-
-    await Storage.set('meals', { date: now.toISOString(), meal: 'breakfast', foodName: 'Oats (dry)', servingSize: 80, servingUnit: 'g', calories: 311, protein: 14, carbs: 53, fat: 6 });
-    await Storage.set('meals', { date: now.toISOString(), meal: 'lunch', foodName: 'Chicken Breast', servingSize: 200, servingUnit: 'g', calories: 330, protein: 62, carbs: 0, fat: 7 });
-    await Storage.set('water', { date: now.toISOString(), amount: 1 });
-    await Storage.set('water', { date: now.toISOString(), amount: 1 });
-    await Storage.set('water', { date: now.toISOString(), amount: 1 });
-    await Storage.set('prs', { exercise: 'Barbell Bench Press', weight: 105, reps: 5, estimated1RM: 117, date: now.toISOString() });
-    await Storage.set('prs', { exercise: 'Deadlift', weight: 160, reps: 3, estimated1RM: 176, date: now.toISOString() });
-
-    App.toast('Demo data loaded!');
-    go('dashboard');
-  },
-
-  clearAll: async function () {
-    if (!confirm('Delete ALL data? This cannot be undone.')) return;
-    await Storage.clearAllData();
-    App.toast('All data cleared');
-    location.reload();
+function updateTarget(key, val, input) {
+  S.set('user.' + key, parseInt(val));
+  const parent = input.parentElement;
+  if (parent) {
+    const span = parent.querySelector('span:last-child');
+    const units = { calorieTarget:' kcal', proteinTarget:'g', carbTarget:'g', fatTarget:'g', waterTarget:' glasses' };
+    if (span) span.textContent = val + (units[key]||'');
   }
-};
+}
+window.updateTarget = updateTarget;
+
+function setTheme(id) {
+  S.set('user.theme', id);
+  document.documentElement.setAttribute('data-theme', id);
+  go('settings');
+  toast('Theme changed to ' + id.charAt(0).toUpperCase() + id.slice(1), 'ok');
+}
+window.setTheme = setTheme;
+
+function toggleUnits() {
+  const cur = S.g('user.units') || 'metric';
+  S.set('user.units', cur === 'metric' ? 'imperial' : 'metric');
+  go('settings');
+}
+window.toggleUnits = toggleUnits;
+
+function editProfile(key) {
+  const user = S.g('user') || {};
+  const labels = { name:'Name', age:'Age', weeklyGoal:'Weekly workout goal' };
+  modal('Edit ' + (labels[key]||key),
+    '<div class="field-wrap"><label class="field-label">' + esc(labels[key]||key) + '</label>' +
+    '<input class="field" id="edit-val" type="' + (key==='name'?'text':'number') + '" value="' + esc(String(user[key]||'')) + '" autofocus></div>',
+    '<button class="btn btn-p" onclick="saveProfileEdit(\'' + key + '\')">Save</button>');
+}
+window.editProfile = editProfile;
+
+function saveProfileEdit(key) {
+  const el = document.getElementById('edit-val');
+  if (!el) return;
+  const val = key === 'name' ? el.value.trim() : parseFloat(el.value);
+  if (!val && val !== 0) { toast('Enter a valid value', 'warn'); return; }
+  S.set('user.' + key, val);
+  closeModal();
+  go('settings');
+  toast('Updated!', 'ok');
+}
+window.saveProfileEdit = saveProfileEdit;
+
+function editRestTimer() {
+  const opts = [30,60,90,120,180];
+  modal('Rest Timer Duration',
+    '<div style="display:flex;flex-direction:column;gap:8px">' +
+    opts.map(s =>
+      '<button class="btn btn-s" onclick="S.set(\'user.restSecs\',' + s + ');closeModal();go(\'settings\')">' + s + 's</button>'
+    ).join('') + '</div>', '');
+}
+window.editRestTimer = editRestTimer;
+
+function openSplitPicker() {
+  const splits = typeof SPLITS !== 'undefined' ? SPLITS : {};
+  modal('Training Split',
+    '<div style="display:flex;flex-direction:column;gap:8px">' +
+    Object.entries(splits).map(([id, data]) =>
+      '<button class="btn btn-s" onclick="S.set(\'user.split\',\'' + id + '\');S.set(\'user.splitDay\',1);closeModal();go(\'settings\')">' + esc(data.n) + ' (' + data.days + ' days)</button>'
+    ).join('') + '</div>', '');
+}
+window.openSplitPicker = openSplitPicker;
+
+function nextSplitDay() { if(typeof WE!=='undefined') WE.nextDay(); go('settings'); }
+function prevSplitDay() {
+  const split = S.g('user.split')||'ppl';
+  const splitData = (typeof SPLITS!=='undefined')?SPLITS[split]:null;
+  if(!splitData) return;
+  const cur = S.g('user.splitDay')||1;
+  const prev = cur <= 1 ? splitData.schedule.length : cur-1;
+  S.set('user.splitDay', prev);
+  go('settings');
+}
+window.nextSplitDay = nextSplitDay; window.prevSplitDay = prevSplitDay;
+
+function recalcTDEE() {
+  const user = S.g('user') || {};
+  const tdee = calcTDEE(user);
+  const prot = Math.round(user.weight * 2.2);
+  const fat = Math.round(tdee * 0.25 / 9);
+  const carb = Math.round((tdee - prot*4 - fat*9) / 4);
+  S.set('user.calorieTarget', tdee);
+  S.set('user.proteinTarget', prot);
+  S.set('user.carbTarget', carb);
+  S.set('user.fatTarget', fat);
+  toast('Targets updated! TDEE: ' + tdee + ' kcal', 'ok');
+  go('settings');
+}
+window.recalcTDEE = recalcTDEE;
+
+function openNavPicker(slotIdx) {
+  const allScreens = [
+    {id:'dashboard',l:'Home'},{id:'workouts',l:'Workout'},{id:'progress',l:'Progress'},
+    {id:'ai',l:'AI Coach'},{id:'bodystats',l:'Body Stats'},{id:'cardio',l:'Cardio'},
+    {id:'nutrition',l:'Nutrition'},{id:'injuries',l:'Injuries'},{id:'recovery',l:'Recovery'},
+    {id:'settings',l:'Settings'}
+  ];
+  modal('Choose Tab',
+    '<div style="display:flex;flex-direction:column;gap:6px">' +
+    allScreens.map(s =>
+      '<button class="btn btn-s" onclick="setNavTab(' + slotIdx + ',\'' + s.id + '\')">' + esc(s.l) + '</button>'
+    ).join('') + '</div>', '');
+}
+window.openNavPicker = openNavPicker;
+
+function setNavTab(idx, screenId) {
+  const tabs = S.g('nav.tabs') || ['dashboard','workouts','progress','ai','settings'];
+  tabs[idx] = screenId;
+  S.set('nav.tabs', tabs);
+  closeModal();
+  if (typeof buildNav !== 'undefined') buildNav();
+  go('settings');
+  toast('Tab updated!', 'ok');
+}
+window.setNavTab = setNavTab;
+
+function resetNav() {
+  S.set('nav.tabs', ['dashboard','workouts','progress','ai','settings']);
+  if (typeof buildNav !== 'undefined') buildNav();
+  go('settings');
+  toast('Navigation reset', 'ok');
+}
+window.resetNav = resetNav;
+
+function exportData() {
+  const data = JSON.stringify(S.d, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'fitnessos-backup-' + today() + '.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Data exported!', 'ok');
+}
+window.exportData = exportData;
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'application/json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        Object.assign(S.d, imported);
+        S.save();
+        toast('Data imported!', 'ok');
+        go('dashboard');
+      } catch(err) { toast('Import failed — invalid file', 'err'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+window.importData = importData;
+
+function clearData() {
+  modal('Clear All Data',
+    '<div style="text-align:center;padding:16px">' +
+    '<div style="font-size:40px;margin-bottom:12px">⚠️</div>' +
+    '<div style="font-size:16px;font-weight:700;margin-bottom:8px">This cannot be undone</div>' +
+    '<div style="font-size:14px;color:var(--txt3)">All workouts, body stats, and settings will be permanently deleted.</div>' +
+    '</div>',
+    '<button class="btn btn-r" onclick="confirmClearData()">Yes, Delete Everything</button>');
+}
+window.clearData = clearData;
+
+function confirmClearData() {
+  localStorage.removeItem('fos_v3');
+  location.reload();
+}
+window.confirmClearData = confirmClearData;
+
+/* ═══════════════════════════════════════════════════
+   WELCOME SCREEN
+═══════════════════════════════════════════════════ */
+reg('welcome', function() {
+  return '<div class="welcome-screen">' +
+    '<div class="welcome-logo">' +
+    '<svg width="48" height="48" viewBox="0 0 48 48" fill="white"><path d="M26 8L16 28h8l-6 12 16-22h-9z"/></svg>' +
+    '</div>' +
+    '<div class="welcome-title">FitnessOS Pro</div>' +
+    '<div class="welcome-sub">The intelligent fitness system that learns, adapts, and evolves with you</div>' +
+    '<div class="welcome-pills">' +
+    ['AI Coaching','Smart Splits','PR Tracking','Recovery','Body Stats','Injury Guard'].map(f =>
+      '<span class="welcome-pill">' + f + '</span>'
+    ).join('') +
+    '</div>' +
+    '<button class="btn btn-p" style="width:100%;max-width:320px;padding:18px;font-size:17px" onclick="go(\'onboard\')">Get Started →</button>' +
+    '<div style="margin-top:16px;font-size:14px;color:var(--txt3);cursor:pointer" onclick="skipOnboarding()">I have existing data</div>' +
+    '</div>';
+});
+
+function skipOnboarding() {
+  S.set('onboarded', true);
+  const nav = document.getElementById('nav');
+  if (nav) nav.style.display = '';
+  if (typeof buildNav !== 'undefined') buildNav();
+  go('dashboard');
+}
+window.skipOnboarding = skipOnboarding;
+
+/* ═══════════════════════════════════════════════════
+   ONBOARDING
+═══════════════════════════════════════════════════ */
+let _obStep = 1;
+const _obData = {};
+const OB_TOTAL = 10;
+
+reg('onboard', function() {
+  return renderObStep(_obStep);
+});
+
+function renderObStep(step) {
+  _obStep = step;
+  const dots = Array.from({length:OB_TOTAL}, (_,i) =>
+    '<div class="ob-dot' + (i+1===step?' on':'') + '"></div>'
+  ).join('');
+  const header = '<div class="ob-header">' +
+    (step > 1 ? '<button class="ob-back" onclick="go_ob(' + (step-1) + ')">←</button>' : '<div style="width:36px"></div>') +
+    '<div class="ob-dots">' + dots + '</div>' +
+    '<div style="width:36px"></div></div>';
+
+  const steps = {
+    1: obStep1, 2: obStep2, 3: obStep3, 4: obStep4, 5: obStep5,
+    6: obStep6, 7: obStep7, 8: obStep8, 9: obStep9, 10: obStep10
+  };
+  return '<div class="ob-screen">' + header + (steps[step]||obStep1)() + '</div>';
+}
+
+function go_ob(step) { _obStep = step; go('onboard'); }
+window.go_ob = go_ob;
+
+function obStep1() {
+  return '<div class="ob-body">' +
+    '<div class="ob-title">What should we call you? 👋</div>' +
+    '<div class="ob-sub">This is how your AI coach will address you.</div>' +
+    '<div class="field-wrap"><input class="field" id="ob-name" type="text" placeholder="Your name" style="font-size:20px;padding:18px;text-align:center" value="' + esc(_obData.name||'') + '" autocomplete="given-name"></div>' +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" onclick="ob1Next()">Continue →</button>' +
+    '</div>';
+}
+
+function ob1Next() {
+  const n = document.getElementById('ob-name').value.trim();
+  if (!n) { toast('Enter your name', 'warn'); return; }
+  _obData.name = n; go_ob(2);
+}
+window.ob1Next = ob1Next;
+
+function obStep2() {
+  const goals = [
+    {id:'hypertrophy',i:'💪',t:'Build Muscle',s:'Hypertrophy focus'},
+    {id:'strength',i:'🏋️',t:'Get Stronger',s:'Strength focus, heavy compounds'},
+    {id:'fatloss',i:'🔥',t:'Lose Fat',s:'Fat loss + muscle preserve'},
+    {id:'athletic',i:'⚡',t:'Athletic Performance',s:'Speed, power, conditioning'},
+    {id:'recomp',i:'🔄',t:'Body Recomposition',s:'Build muscle while losing fat'},
+    {id:'health',i:'🌿',t:'General Health',s:'Move well, feel great'},
+  ];
+  return '<div class="ob-body">' +
+    '<div class="ob-title">What\'s your main goal?</div>' +
+    '<div class="ob-sub">Your program, weights, and AI advice adapt to this.</div>' +
+    goals.map(g =>
+      '<button class="ob-opt' + (_obData.goal===g.id?' sel':'') + '" id="goal-' + g.id + '" onclick="obSelectGoal(\'' + g.id + '\')">' +
+      '<div class="ob-opt-icon">' + g.i + '</div>' +
+      '<div class="ob-opt-info"><div class="ob-opt-title">' + g.t + '</div><div class="ob-opt-sub">' + g.s + '</div></div>' +
+      '</button>'
+    ).join('') +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" onclick="ob2Next()">Continue →</button>' +
+    '<div class="ob-skip" onclick="go_ob(3)">Skip for now</div>' +
+    '</div>';
+}
+
+function obSelectGoal(id) {
+  _obData.goal = id;
+  document.querySelectorAll('.ob-opt').forEach(b => b.classList.remove('sel'));
+  const btn = document.getElementById('goal-'+id); if(btn) btn.classList.add('sel');
+}
+window.obSelectGoal = obSelectGoal;
+
+function ob2Next() { if(!_obData.goal) _obData.goal='hypertrophy'; go_ob(3); }
+window.ob2Next = ob2Next;
+
+function obStep3() {
+  const levels = [
+    {id:'beginner',i:'🌱',t:'Beginner',s:'Less than 1 year training'},
+    {id:'intermediate',i:'💪',t:'Intermediate',s:'1–3 years of consistent training'},
+    {id:'advanced',i:'🏆',t:'Advanced',s:'3+ years, know your lifts'},
+    {id:'elite',i:'👑',t:'Elite',s:'Competitive athlete'},
+  ];
+  return '<div class="ob-body">' +
+    '<div class="ob-title">Experience level?</div>' +
+    '<div class="ob-sub">This sets your starting weights and program complexity.</div>' +
+    levels.map(l =>
+      '<button class="ob-opt' + (_obData.exp===l.id?' sel':'') + '" id="exp-' + l.id + '" onclick="obSelectExp(\'' + l.id + '\')">' +
+      '<div class="ob-opt-icon">' + l.i + '</div>' +
+      '<div class="ob-opt-info"><div class="ob-opt-title">' + l.t + '</div><div class="ob-opt-sub">' + l.s + '</div></div>' +
+      '</button>'
+    ).join('') +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" onclick="ob3Next()">Continue →</button>' +
+    '<div class="ob-skip" onclick="go_ob(4)">Skip for now</div>' +
+    '</div>';
+}
+function obSelectExp(id) { _obData.exp=id; document.querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel')); const btn=document.getElementById('exp-'+id); if(btn) btn.classList.add('sel'); }
+function ob3Next() { if(!_obData.exp) _obData.exp='intermediate'; go_ob(4); }
+window.obSelectExp=obSelectExp; window.ob3Next=ob3Next;
+
+function obStep4() {
+  const splits = typeof SPLITS !== 'undefined' ? Object.entries(SPLITS) : [];
+  return '<div class="ob-body">' +
+    '<div class="ob-title">Training split?</div>' +
+    '<div class="ob-sub">How many days per week and how you split muscle groups.</div>' +
+    splits.map(([id,data]) =>
+      '<button class="ob-opt' + (_obData.split===id?' sel':'') + '" id="split-' + id + '" onclick="obSelectSplit(\'' + id + '\')">' +
+      '<div class="ob-opt-icon">📅</div>' +
+      '<div class="ob-opt-info"><div class="ob-opt-title">' + esc(data.n) + '</div><div class="ob-opt-sub">' + data.days + ' days/week</div></div>' +
+      '</button>'
+    ).join('') +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" onclick="ob4Next()">Continue →</button>' +
+    '<div class="ob-skip" onclick="go_ob(5)">Skip for now</div>' +
+    '</div>';
+}
+function obSelectSplit(id) { _obData.split=id; document.querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel')); const btn=document.getElementById('split-'+id); if(btn) btn.classList.add('sel'); }
+function ob4Next() { if(!_obData.split) _obData.split='ppl'; go_ob(5); }
+window.obSelectSplit=obSelectSplit; window.ob4Next=ob4Next;
+
+function obStep5() {
+  const locs = [
+    {id:'full',i:'🏋️',t:'Full Gym',s:'Barbells, cables, machines, everything',eq:['barbell','dumbbell','cables','machine','bar','kettlebell']},
+    {id:'home_db',i:'🏠',t:'Home with Dumbbells',s:'Dumbbells, bench, maybe a pull-up bar',eq:['dumbbell','bar','bands']},
+    {id:'bw',i:'🤸',t:'Bodyweight Only',s:'No equipment needed',eq:['none','bar']},
+    {id:'mixed',i:'🔄',t:'Mixed',s:'Sometimes gym, sometimes home',eq:['barbell','dumbbell','cables','machine','bar','bands','none']},
+  ];
+  return '<div class="ob-body">' +
+    '<div class="ob-title">Where do you train?</div>' +
+    '<div class="ob-sub">Determines which exercises appear in your workouts.</div>' +
+    locs.map(l =>
+      '<button class="ob-opt' + (_obData.location===l.id?' sel':'') + '" id="loc-' + l.id + '" onclick="obSelectLoc(\'' + l.id + '\')">' +
+      '<div class="ob-opt-icon">' + l.i + '</div>' +
+      '<div class="ob-opt-info"><div class="ob-opt-title">' + l.t + '</div><div class="ob-opt-sub">' + l.s + '</div></div>' +
+      '</button>'
+    ).join('') +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" onclick="ob5Next()">Continue →</button>' +
+    '<div class="ob-skip" onclick="go_ob(6)">Skip for now</div>' +
+    '</div>';
+}
+function obSelectLoc(id) {
+  const equipMap = {
+    full: ['barbell','dumbbell','cables','machine','bar','kettlebell'],
+    home_db: ['dumbbell','bar','bands'],
+    bw: ['none','bar'],
+    mixed: ['barbell','dumbbell','cables','machine','bar','bands','none']
+  };
+  _obData.location = id;
+  _obData.equipment = equipMap[id] || [];
+  document.querySelectorAll('.ob-opt').forEach(b => b.classList.remove('sel'));
+  const btn = document.getElementById('loc-' + id);
+  if (btn) btn.classList.add('sel');
+}
+function ob5Next() { if(!_obData.equipment) _obData.equipment=['barbell','dumbbell','cables','machine','bar']; go_ob(6); }
+window.obSelectLoc=obSelectLoc; window.ob5Next=ob5Next;
+
+function obStep6() {
+  const user = S.g('user')||{};
+  return '<div class="ob-body">' +
+    '<div class="ob-title">Your stats</div>' +
+    '<div class="ob-sub">Used to calculate your TDEE and personalise your program.</div>' +
+    '<div style="display:flex;gap:12px;margin-bottom:12px">' +
+    '<button class="pill' + (!_obData.units||_obData.units==='metric'?' on':'') + '" onclick="obSetUnits(\'metric\')">Metric (kg/cm)</button>' +
+    '<button class="pill' + (_obData.units==='imperial'?' on':'') + '" onclick="obSetUnits(\'imperial\')">Imperial (lb/in)</button>' +
+    '</div>' +
+    '<div class="field-wrap"><label class="field-label">Age</label><input class="field" id="ob-age" type="number" min="13" max="100" placeholder="25" value="' + (_obData.age||user.age||'') + '" inputmode="numeric"></div>' +
+    '<div class="field-wrap"><label class="field-label">Weight (' + (_obData.units==='imperial'?'lb':'kg') + ')</label><input class="field" id="ob-weight" type="number" step="0.5" placeholder="75" value="' + (_obData.weight||user.weight||'') + '" inputmode="decimal"></div>' +
+    '<div class="field-wrap"><label class="field-label">Height (' + (_obData.units==='imperial'?'in':'cm') + ')</label><input class="field" id="ob-height" type="number" step="1" placeholder="175" value="' + (_obData.height||user.height||'') + '" inputmode="numeric"></div>' +
+    '<div style="display:flex;gap:8px;margin-bottom:12px">' +
+    '<button class="pill' + (!_obData.gender||_obData.gender==='male'?' on':'') + '" onclick="obSetGender(\'male\')">Male</button>' +
+    '<button class="pill' + (_obData.gender==='female'?' on':'') + '" onclick="obSetGender(\'female\')">Female</button>' +
+    '</div>' +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" onclick="ob6Next()">Continue →</button>' +
+    '<div class="ob-skip" onclick="go_ob(7)">Skip for now</div>' +
+    '</div>';
+}
+function obSetUnits(u) { _obData.units=u; go_ob(6); }
+function obSetGender(g) { _obData.gender=g; document.querySelectorAll('.pill').forEach(p=>{ if(p.textContent==='Male'||p.textContent==='Female') p.classList.remove('on'); }); }
+function ob6Next() { _obData.age=parseInt(document.getElementById('ob-age').value)||25; _obData.weight=parseFloat(document.getElementById('ob-weight').value)||75; _obData.height=parseInt(document.getElementById('ob-height').value)||175; if(!_obData.gender) _obData.gender='male'; go_ob(7); }
+window.obSetUnits=obSetUnits; window.obSetGender=obSetGender; window.ob6Next=ob6Next;
+
+function obStep7() {
+  const parts = ['None','Shoulder (L)','Shoulder (R)','Elbow (L)','Elbow (R)','Wrist','Lower Back','Upper Back','Hip','Knee','Ankle'];
+  return '<div class="ob-body">' +
+    '<div class="ob-title">Any current injuries?</div>' +
+    '<div class="ob-sub">We\'ll filter dangerous exercises automatically.</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">' +
+    parts.map(p => '<button class="pill" id="ip-' + p.replace(/[\s()]/g,'') + '" onclick="obToggleInjury(\'' + p + '\')">' + p + '</button>').join('') +
+    '</div>' +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" onclick="go_ob(8)">Continue →</button>' +
+    '<div class="ob-skip" onclick="go_ob(8)">No injuries, skip</div>' +
+    '</div>';
+}
+if (!window._obInjuries) window._obInjuries = [];
+function obToggleInjury(p) {
+  if (!window._obInjuries) window._obInjuries = [];
+  const idx = window._obInjuries.indexOf(p);
+  if (p==='None') window._obInjuries=[];
+  else if(idx>=0) window._obInjuries.splice(idx,1);
+  else window._obInjuries.push(p);
+  document.querySelectorAll('[id^="ip-"]').forEach(b=>b.classList.remove('on'));
+  window._obInjuries.forEach(part=>{ const b=document.getElementById('ip-'+part.replace(/[\s()]/g,'')); if(b) b.classList.add('on'); });
+}
+window.obToggleInjury=obToggleInjury;
+window.renderObStep7=obStep7;
+
+function obStep8() {
+  return '<div class="ob-body">' +
+    '<div class="ob-title">Set your goals</div>' +
+    '<div class="ob-sub">We\'ll track your progress toward these targets.</div>' +
+    '<div class="field-wrap"><label class="field-label">Goal Weight (kg) — optional</label><input class="field" id="ob-goalw" type="number" step="0.5" placeholder="70" value="' + (_obData.goalWeight||'') + '" inputmode="decimal"></div>' +
+    '<div class="field-wrap"><label class="field-label">Weekly workout target: <span id="wg-val" style="color:var(--c1)">' + (_obData.weeklyGoal||4) + ' days</span></label>' +
+    '<input type="range" min="1" max="7" step="1" value="' + (_obData.weeklyGoal||4) + '" oninput="document.getElementById(\'wg-val\').textContent=this.value+\' days\';_obData.weeklyGoal=parseInt(this.value)"></div>' +
+    '<div class="field-wrap"><label class="field-label">Preferred session length</label>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+    [30,45,60,75,90].map(m => '<button class="pill' + ((_obData.sessionLen||60)===m?' on':'') + '" onclick="obSetSession(' + m + ')">' + m + 'min</button>').join('') +
+    '</div></div>' +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" onclick="ob8Next()">Continue →</button>' +
+    '<div class="ob-skip" onclick="go_ob(9)">Skip for now</div>' +
+    '</div>';
+}
+function obSetSession(m) { _obData.sessionLen=m; document.querySelectorAll('.pill').forEach(p=>{if([30,45,60,75,90].map(x=>x+'min').includes(p.textContent)){p.classList.remove('on');}});  const btns=document.querySelectorAll('.pill'); btns.forEach(b=>{if(b.textContent===m+'min')b.classList.add('on');}); }
+function ob8Next() { _obData.goalWeight=parseFloat(document.getElementById('ob-goalw').value)||null; if(!_obData.weeklyGoal) _obData.weeklyGoal=4; go_ob(9); }
+window.obSetSession=obSetSession; window.ob8Next=ob8Next;
+
+function obStep9() {
+  const tmpUser = Object.assign({}, S.g('user')||{}, _obData);
+  const tdee = calcTDEE(tmpUser);
+  const prot = Math.round((tmpUser.weight||75)*2);
+  const fat = Math.round(tdee*0.25/9);
+  const carb = Math.round((tdee - prot*4 - fat*9)/4);
+  if(!_obData.calorieTarget) { _obData.calorieTarget=tdee; _obData.proteinTarget=prot; _obData.carbTarget=carb; _obData.fatTarget=fat; }
+  return '<div class="ob-body">' +
+    '<div class="ob-title">Nutrition targets</div>' +
+    '<div class="ob-sub">Your estimated TDEE is <strong style="color:var(--c1)">' + tdee + ' kcal</strong>. You can customise below.</div>' +
+    '<div style="margin-bottom:12px"><button class="btn btn-s btn-sm" onclick="obAutoMacros(' + tdee + ',' + prot + ',' + carb + ',' + fat + ')">Auto-set from TDEE</button></div>' +
+    '<div class="field-wrap"><label class="field-label">Daily Calories</label><input class="field" id="ob-cals" type="number" value="' + (_obData.calorieTarget||tdee) + '" inputmode="numeric"></div>' +
+    '<div class="field-wrap"><label class="field-label">Protein (g)</label><input class="field" id="ob-prot" type="number" value="' + (_obData.proteinTarget||prot) + '" inputmode="numeric"></div>' +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" onclick="ob9Next()">Continue →</button>' +
+    '<div class="ob-skip" onclick="go_ob(10)">Skip for now</div>' +
+    '</div>';
+}
+function obAutoMacros(cal,prot,carb,fat) { _obData.calorieTarget=cal;_obData.proteinTarget=prot;_obData.carbTarget=carb;_obData.fatTarget=fat; const c=document.getElementById('ob-cals'); if(c)c.value=cal; const p=document.getElementById('ob-prot'); if(p)p.value=prot; toast('Macros set!','ok'); }
+function ob9Next() { _obData.calorieTarget=parseInt(document.getElementById('ob-cals').value)||2000; _obData.proteinTarget=parseInt(document.getElementById('ob-prot').value)||150; go_ob(10); }
+window.obAutoMacros=obAutoMacros; window.ob9Next=ob9Next;
+
+function obStep10() {
+  const goal_map = { hypertrophy:'Build Muscle', strength:'Get Stronger', fatloss:'Lose Fat', athletic:'Athletic', recomp:'Recomp', health:'General Health' };
+  const split_map = typeof SPLITS !== 'undefined' ? SPLITS : {};
+  return '<div class="ob-body">' +
+    '<div class="ob-title">You\'re ready! 🎉</div>' +
+    '<div class="ob-sub">Here\'s what we\'ve set up for you.</div>' +
+    '<div class="card card-dark" style="margin:0 0 16px">' +
+    '<div class="ex-row" style="padding:10px 0;border:none"><div class="ex-icon">👤</div><div class="ex-info"><div class="ex-name">' + esc(_obData.name||'Athlete') + '</div><div class="ex-sub">' + esc((_obData.exp||'intermediate').charAt(0).toUpperCase()+(_obData.exp||'intermediate').slice(1)) + '</div></div></div>' +
+    '<div class="ex-row" style="padding:10px 0;border:none"><div class="ex-icon">🎯</div><div class="ex-info"><div class="ex-name">' + esc(goal_map[_obData.goal||'hypertrophy']) + '</div><div class="ex-sub">Primary goal</div></div></div>' +
+    '<div class="ex-row" style="padding:10px 0;border:none"><div class="ex-icon">📅</div><div class="ex-info"><div class="ex-name">' + esc((split_map[_obData.split||'ppl']||{}).n||'Push Pull Legs') + '</div><div class="ex-sub">' + (_obData.weeklyGoal||4) + 'x per week target</div></div></div>' +
+    (_obData.weight ? '<div class="ex-row" style="padding:10px 0;border:none"><div class="ex-icon">⚖️</div><div class="ex-info"><div class="ex-name">' + _obData.weight + (_obData.units==='imperial'?'lb':'kg') + '</div><div class="ex-sub">Current weight</div></div></div>' : '') +
+    '</div>' +
+    '</div>' +
+    '<div class="ob-footer">' +
+    '<button class="btn btn-p" style="font-size:17px;padding:18px" onclick="completeOnboarding()">Start Training ⚡</button>' +
+    '</div>';
+}
+window.obStep10=obStep10;
+
+function completeOnboarding() {
+  const user = Object.assign({}, S.g('user')||{}, {
+    name: _obData.name || 'Athlete',
+    goal: _obData.goal || 'hypertrophy',
+    exp: _obData.exp || 'intermediate',
+    split: _obData.split || 'ppl',
+    splitDay: 1,
+    weeklyGoal: _obData.weeklyGoal || 4,
+    equipment: _obData.equipment || ['barbell','dumbbell','cables','machine','bar'],
+    age: _obData.age || 25,
+    weight: _obData.weight || 75,
+    height: _obData.height || 175,
+    gender: _obData.gender || 'male',
+    units: _obData.units || 'metric',
+    goalWeight: _obData.goalWeight,
+    calorieTarget: _obData.calorieTarget || 2000,
+    proteinTarget: _obData.proteinTarget || 150,
+    carbTarget: _obData.carbTarget || 200,
+    fatTarget: _obData.fatTarget || 65,
+  });
+  S.set('user', user);
+  if (window._obInjuries && window._obInjuries.length) {
+    const injuries = window._obInjuries.map(p => ({ bodyPart:p, severity:'Mild', date:isoNow(), note:'', recovered:false }));
+    S.set('injuries', injuries);
+  }
+  S.set('onboarded', true);
+  const nav = document.getElementById('nav');
+  if (nav) nav.style.display = '';
+  if (typeof buildNav !== 'undefined') buildNav();
+  document.documentElement.setAttribute('data-theme', 'electric');
+  toast('Welcome to FitnessOS, ' + esc(user.name) + '! 🎉', 'ok', 4000);
+  haptic([50,30,50]);
+  go('dashboard');
+}
+window.completeOnboarding = completeOnboarding;
