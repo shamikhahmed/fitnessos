@@ -77,6 +77,27 @@ function _tabProfile(u) {
     '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">' +
     '<button class="btn btn-secondary btn-sm" onclick="showLogWeight()">📊 Log Weight Today</button>' +
     '</div></div>' +
+
+    _sectionTitle('Active Injuries') +
+    '<div style="margin-bottom:14px">' +
+    '<div style="font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.5">These affect exercise recommendations and readiness score. Tap to mark recovered.</div>' +
+    (function() {
+      const injuries = S.g('user.injuries') || [];
+      if (!injuries.length) return '<div style="font-size:14px;color:var(--txt3);padding:10px 0">No injuries logged. Add via onboarding or below.</div>';
+      return injuries.map(function(inj, i) {
+        const name = typeof inj === 'string' ? inj : (inj.bodyPart || 'Unknown');
+        const recovered = typeof inj === 'object' ? inj.recovered : false;
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">' +
+          '<div style="display:flex;align-items:center;gap:10px">' +
+          '<span style="font-size:18px">'+(recovered?'✅':'⚠️')+'</span>' +
+          '<div><div style="font-size:14px;font-weight:600;color:var(--txt)">'+esc(name.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}))+'</div>' +
+          '<div style="font-size:12px;color:var(--txt3)">'+(recovered?'Recovered':'Active injury — affecting recommendations')+'</div></div>' +
+          '</div>' +
+          '<button onclick="toggleInjuryRecovered('+i+')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;touch-action:manipulation;border:1px solid '+(recovered?'var(--border)':'rgba(255,69,58,0.3)')+';background:'+(recovered?'var(--bg4)':'rgba(255,69,58,0.1)')+';color:'+(recovered?'var(--txt3)':'#ff453a')+'">'+(recovered?'Re-activate':'Mark Recovered')+'</button>' +
+          '</div>';
+      }).join('');
+    })() +
+    '</div>' +
     '</div>';
 }
 
@@ -221,6 +242,16 @@ function _tabNotifications(u) {
     _toggle('Rest Day Reminders', 'user.restDayReminders', u.restDayReminders!==false) +
     _toggle('Streak Alerts', 'user.streakAlerts', u.streakAlerts!==false) +
     _toggle('Caffeine Warning', 'user.caffeineWarning', u.caffeineWarning!==false) +
+    _toggle('Daily Morning Briefing', 'settings.dailyBriefing', S.g('settings.dailyBriefing') !== false) +
+    _sectionTitle('Coach Update Frequency') +
+    '<div style="display:flex;gap:8px;margin-bottom:4px">' +
+    ['daily','weekly'].map(function(freq) {
+      const cur = S.g('settings.coachFrequency') || 'daily';
+      const active = cur === freq;
+      return '<button onclick="_setSetting(\'settings.coachFrequency\',\''+freq+'\');go(\'settings\',{tab:\'notifications\'})" style="flex:1;padding:10px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation;border:1px solid var(--border);background:'+(active?'var(--grad)':'var(--bg3)')+';color:'+(active?'#fff':'var(--txt3)')+'">'+freq.charAt(0).toUpperCase()+freq.slice(1)+'</button>';
+    }).join('') +
+    '</div>' +
+    '<div style="font-size:12px;color:var(--txt3);margin-top:4px;padding:0 2px">Daily shows briefing every morning. Weekly shows full review on Mondays.</div>' +
     '</div>';
 }
 
@@ -284,6 +315,18 @@ function _infoStat(label, val, sub) {
 
 /* ── Actions ── */
 window._setSetting = function(key, val) { S.set(key, val); };
+
+window.toggleInjuryRecovered = function(idx) {
+  const injuries = S.g('user.injuries') || [];
+  const inj = injuries[idx];
+  if (typeof inj === 'string') {
+    injuries[idx] = { bodyPart: inj, recovered: true };
+  } else {
+    injuries[idx] = Object.assign({}, inj, { recovered: !inj.recovered });
+  }
+  S.set('user.injuries', injuries);
+  go('settings', { tab: 'profile' });
+};
 
 window.toggleSetting = function(key) {
   const cur = S.g(key);

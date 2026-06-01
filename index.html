@@ -62,7 +62,18 @@
     buildNav();
     if (typeof loadCustomExercises === 'function') loadCustomExercises();
     initCanvas();
-    if (!S.g('onboarded')) { go('intro'); } else { go('dashboard'); }
+    if (!S.g('onboarded')) {
+      go('intro');
+    } else {
+      const lastBriefing = S.g('settings.lastBriefingDate');
+      const todayStr = new Date().toISOString().slice(0,10);
+      if (lastBriefing !== todayStr && S.g('settings.dailyBriefing') !== false) {
+        S.set('settings.lastBriefingDate', todayStr);
+        go('briefing');
+      } else {
+        go('dashboard');
+      }
+    }
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }

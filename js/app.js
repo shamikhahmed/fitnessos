@@ -23,7 +23,7 @@ function go(id, data) {
     v.innerHTML = '';
     v.appendChild(div);
     const nav = document.getElementById('nav');
-    const noNav = ['onboarding', 'intro'];
+    const noNav = ['onboarding', 'intro', 'briefing'];
     if (nav) nav.style.display = noNav.includes(id) ? 'none' : 'flex';
     document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
     const nb = document.getElementById('nb-' + id);
@@ -241,6 +241,12 @@ const ReadinessEngine = {
       const streak = StreakEngine.get();
       if (streak >= 7) score -= 15;
       else if (streak >= 5) score -= 8;
+      const injuries = S.g('user.injuries') || [];
+      const activeInjuries = injuries.filter(function(i) {
+        return typeof i === 'string' ? true : !i.recovered;
+      }).length;
+      if (activeInjuries >= 3) score -= 15;
+      else if (activeInjuries >= 1) score -= 5;
       return Math.max(0, Math.min(100, Math.round(score)));
     } catch(e) { return 70; }
   },
@@ -411,79 +417,79 @@ const SplitEngine = {
   _ppl: [
     { n:'Push A — Upper Chest & Front Delts', muscles:['upper_chest','front_delts'],
       exercises:['Incline Barbell Bench Press','Overhead Press','Cable Lateral Raise','Incline Dumbbell Fly','Front Delt Raise'],
-      warmup:['Band Pull-Aparts × 15','Arm Circles × 10 each','Light Shoulder Press × 15 BW'] },
+      warmup:['5 min treadmill walk (incline 2%)','Arm Circles — 10 forward, 10 backward','Band Pull-Aparts — 3×15','Wall Slides — 2×10','Light DB Lateral Raise — 2×15 at 20% working weight','Push-Up — 2×10 bodyweight','Shoulder CARs (Controlled Articular Rotations) — 5 each direction'] },
     { n:'Pull A — Lats & Bicep Thickness', muscles:['lats','biceps'],
       exercises:['Barbell Row','Lat Pulldown','Cable Row','EZ Bar Curl','Deadlift'],
-      warmup:['Dead Hangs × 30s','Band Pull-Aparts × 15','Cat-Cow × 10'] },
+      warmup:['5 min rowing machine (easy pace)','Dead Hang — 3×20 seconds','Band Pull-Aparts — 3×15','Cat-Cow — 10 reps','Scapular Pull-Ups — 2×8','Light Face Pulls — 2×15 at 20% working weight'] },
     { n:'Legs A — Quads & Calves', muscles:['quads','calves'],
       exercises:['Back Squat','Leg Press','Leg Extension','Standing Calf Raise','Goblet Squat'],
-      warmup:['Hip Circles × 10 each','Leg Swings × 15 each','Goblet Squat × 10 BW','Ankle Rolls × 10'] },
+      warmup:['5 min stationary bike','Hip Circles — 10 each direction','Leg Swings — 15 each direction (front-back + side-side)','Glute Bridge BW — 2×15','Bodyweight Squat — 2×15 (focus on depth)','Lateral Band Walk — 2×15 steps each way','Ankle Rolls — 10 each foot'] },
     { n:'Push B — Chest & Side Delts', muscles:['lower_chest','side_delts','triceps'],
       exercises:['Flat Barbell Bench Press','Dumbbell Lateral Raise','Machine Chest Press','Tricep Pushdown','Overhead Tricep Extension'],
-      warmup:['Arm Circles × 10','Band Pull-Aparts × 15','Push-Ups × 10 BW'] },
+      warmup:['5 min treadmill walk (incline 2%)','Arm Circles — 10 forward, 10 backward','Band Pull-Aparts — 3×15','Wall Slides — 2×10','Light DB Lateral Raise — 2×15 at 20% working weight','Push-Up — 2×10 bodyweight','Shoulder CARs (Controlled Articular Rotations) — 5 each direction'] },
     { n:'Pull B — Upper Back & Rear Delts', muscles:['upper_back','rear_delts','biceps'],
       exercises:['Seated Cable Row','Face Pulls','Rear Delt Fly','Hammer Curl','Incline Dumbbell Curl'],
-      warmup:['Band Pull-Aparts × 15','Cat-Cow × 10','Dead Hangs × 20s'] },
+      warmup:['5 min rowing machine (easy pace)','Dead Hang — 3×20 seconds','Band Pull-Aparts — 3×15','Cat-Cow — 10 reps','Scapular Pull-Ups — 2×8','Light Face Pulls — 2×15 at 20% working weight'] },
     { n:'Legs B — Hamstrings & Glutes', muscles:['hamstrings','glutes','calves'],
       exercises:['Romanian Deadlift','Leg Curl','Hip Thrust','Seated Calf Raise','Cable Pull-Through'],
-      warmup:['Hip Circles × 10 each','Glute Bridges × 20 BW','Leg Swings × 15','Hip Flexor Stretch × 30s'] }
+      warmup:['5 min stationary bike','Hip Circles — 10 each direction','Leg Swings — 15 each direction (front-back + side-side)','Glute Bridge BW — 2×15','Bodyweight Squat — 2×15 (focus on depth)','Lateral Band Walk — 2×15 steps each way','Ankle Rolls — 10 each foot'] }
   ],
   _ul: [
     { n:'Upper A — Chest & Back', muscles:['chest','back','biceps','triceps'],
       exercises:['Barbell Bench Press','Barbell Row','Overhead Press','Lat Pulldown','Dumbbell Curl','Tricep Pushdown'],
-      warmup:['Arm Circles × 10','Band Pull-Aparts × 15','Light Rows × 15 BW'] },
+      warmup:['5 min light cardio','Arm Circles — 10 each direction','Band Pull-Aparts — 3×15','Thoracic Rotation — 8 each side','Wall Slides — 2×10','Light DB Press — 10 reps at 30% weight'] },
     { n:'Lower A — Quads Focus', muscles:['quads','hamstrings','calves'],
       exercises:['Back Squat','Romanian Deadlift','Leg Press','Leg Curl','Calf Raise'],
-      warmup:['Hip Circles × 10','Leg Swings × 15','Goblet Squat × 10 BW'] },
+      warmup:['5 min stationary bike','Hip Flexor Stretch — 30s each side','Glute Bridge BW — 2×20','Bodyweight Squat — 2×15','Leg Swings — 15 each direction','Calf Raises BW — 2×20'] },
     { n:'Upper B — Shoulders & Arms', muscles:['shoulders','biceps','triceps'],
       exercises:['Overhead Press','Dumbbell Lateral Raise','Face Pulls','EZ Bar Curl','Skull Crushers','Cable Curl'],
-      warmup:['Shoulder Rolls × 10','Band Pull-Aparts × 15','Arm Circles × 10'] },
+      warmup:['5 min light cardio','Arm Circles — 10 each direction','Band Pull-Aparts — 3×15','Thoracic Rotation — 8 each side','Wall Slides — 2×10','Light DB Press — 10 reps at 30% weight'] },
     { n:'Lower B — Posterior Chain', muscles:['glutes','hamstrings','calves'],
       exercises:['Deadlift','Hip Thrust','Leg Curl','Good Morning','Seated Calf Raise'],
-      warmup:['Hip Circles × 10','Glute Bridges × 20 BW','Leg Swings × 15'] }
+      warmup:['5 min stationary bike','Hip Flexor Stretch — 30s each side','Glute Bridge BW — 2×20','Bodyweight Squat — 2×15','Leg Swings — 15 each direction','Calf Raises BW — 2×20'] }
   ],
   _fb: [
     { n:'Full Body A', muscles:['chest','back','legs','shoulders'],
       exercises:['Back Squat','Barbell Row','Barbell Bench Press','Overhead Press','Dumbbell Curl','Tricep Pushdown'],
-      warmup:['Hip Circles × 10','Arm Circles × 10','Jumping Jacks × 20'] },
+      warmup:['5 min treadmill walk','Full Body Joint Circles (ankles→knees→hips→shoulders)','Jumping Jacks — 30 reps','Inchworm — 8 reps','World\'s Greatest Stretch — 5 each side','Bodyweight Squat — 15 reps','Push-Up — 10 reps'] },
     { n:'Full Body B', muscles:['legs','back','chest','core'],
       exercises:['Deadlift','Lat Pulldown','Incline Dumbbell Press','Dumbbell Lateral Raise','Face Pulls','Plank 60s'],
-      warmup:['Leg Swings × 15','Band Pull-Aparts × 15','Light Squats × 15 BW'] },
+      warmup:['5 min treadmill walk','Full Body Joint Circles (ankles→knees→hips→shoulders)','Jumping Jacks — 30 reps','Inchworm — 8 reps','World\'s Greatest Stretch — 5 each side','Bodyweight Squat — 15 reps','Push-Up — 10 reps'] },
     { n:'Full Body C', muscles:['legs','chest','shoulders','arms'],
       exercises:['Leg Press','Dumbbell Bench Press','Arnold Press','Cable Row','EZ Bar Curl','Overhead Tricep Extension'],
-      warmup:['Hip Circles × 10','Arm Circles × 10','Bodyweight Squats × 15'] }
+      warmup:['5 min treadmill walk','Full Body Joint Circles (ankles→knees→hips→shoulders)','Jumping Jacks — 30 reps','Inchworm — 8 reps','World\'s Greatest Stretch — 5 each side','Bodyweight Squat — 15 reps','Push-Up — 10 reps'] }
   ],
   _bro: [
     { n:'Chest Day', muscles:['chest'], exercises:['Barbell Bench Press','Incline Barbell Bench Press','Cable Fly','Dumbbell Fly','Chest Dip'],
-      warmup:['Arm Circles × 10','Push-Ups × 10'] },
+      warmup:['5 min light cardio','Arm Circles — 10 each direction','Band Pull-Aparts — 2×15','Wall Slides — 2×10','Push-Up — 2×15 BW','Light DB Fly — 2×12 at 20% weight'] },
     { n:'Back Day', muscles:['back'], exercises:['Deadlift','Barbell Row','Lat Pulldown','Seated Cable Row','Face Pulls'],
-      warmup:['Dead Hangs × 20s','Band Pull-Aparts × 15'] },
+      warmup:['5 min rowing machine','Dead Hang — 3×20s','Cat-Cow — 10 reps','Band Pull-Aparts — 3×15','Scapular Pull-Ups — 2×8'] },
     { n:'Shoulders Day', muscles:['shoulders'], exercises:['Overhead Press','Dumbbell Lateral Raise','Front Delt Raise','Rear Delt Fly','Upright Row'],
-      warmup:['Shoulder Rolls × 10','Band Pull-Aparts × 15'] },
+      warmup:['5 min light cardio','Shoulder Rolls — 15 forward + backward','Arm Circles — 10 each','Band Pull-Aparts — 3×15','Cuban Press — 2×10 light','Wall Slides — 2×10'] },
     { n:'Arms Day', muscles:['biceps','triceps'], exercises:['Barbell Curl','Hammer Curl','Incline Dumbbell Curl','Tricep Pushdown','Skull Crushers','Overhead Tricep Extension'],
-      warmup:['Arm Circles × 10','Wrist Rolls × 10'] },
+      warmup:['5 min treadmill walk','Wrist Circles — 10 each direction','Arm Circles — 10','Band Pull-Aparts — 2×15','Light Hammer Curl — 2×12 BW equivalent'] },
     { n:'Legs Day', muscles:['legs'], exercises:['Back Squat','Leg Press','Romanian Deadlift','Leg Curl','Leg Extension','Calf Raise'],
-      warmup:['Hip Circles × 10','Leg Swings × 15','Goblet Squat × 10 BW'] }
+      warmup:['5 min stationary bike','Hip Circles — 10 each','Leg Swings — 15 each direction','Glute Bridge BW — 2×20','Bodyweight Squat — 2×15','Lateral Band Walk — 2×10 each way'] }
   ],
   _str: [
     { n:'Squat Day', muscles:['quads','glutes','core'], exercises:['Back Squat','Front Squat','Leg Press','Leg Extension','Core Work'],
-      warmup:['Hip Circles × 10','Goblet Squat × 10 BW','Leg Swings × 15'] },
+      warmup:['10 min treadmill walk','Hip Circles — 10 each','Ankle Mobility — 10 reps each','Glute Bridge BW — 2×20','Box Squat BW — 2×10','Goblet Squat — 2×10 light','Hip Flexor Stretch — 45s each side'] },
     { n:'Press Day', muscles:['chest','shoulders','triceps'], exercises:['Barbell Bench Press','Overhead Press','Tricep Pushdown','Dumbbell Lateral Raise'],
-      warmup:['Arm Circles × 10','Band Pull-Aparts × 15'] },
+      warmup:['5 min light cardio','Shoulder CARs — 5 each direction','Band Pull-Aparts — 3×15','Wall Slides — 2×10','Rotator Cuff Internal/External Rotation — 2×15','Push-Up — 2×10'] },
     { n:'Pull Day', muscles:['back','biceps'], exercises:['Deadlift','Barbell Row','Lat Pulldown','EZ Bar Curl','Face Pulls'],
-      warmup:['Dead Hangs × 20s','Cat-Cow × 10'] },
+      warmup:['5 min rowing machine','Dead Hang — 3×20s','Thoracic Extension over foam roller — 8 reps','Cat-Cow — 10 reps','Scapular Pull-Ups — 2×8','Light RDL — 2×10 empty bar'] },
     { n:'Accessory Day', muscles:['shoulders','arms','core'], exercises:['Overhead Press','Hammer Curl','Tricep Pushdown','Face Pulls','Plank'],
-      warmup:['Shoulder Rolls × 10','Arm Circles × 10'] }
+      warmup:['5 min treadmill walk','Full body mobility flow — 5 mins','Joint circles top to bottom'] }
   ],
   _home: [
     { n:'Push Day', muscles:['chest','shoulders','triceps'], exercises:['Push-Ups','Pike Push-Ups','Dumbbell Press','Dumbbell Lateral Raise','Tricep Dip'],
-      warmup:['Arm Circles × 10','Shoulder Rolls × 10'] },
+      warmup:['5 min jumping jacks','Arm Circles — 10 each','Hip Circles — 10 each','Inchworm — 8 reps','World\'s Greatest Stretch — 5 each side','Jumping Jacks — 20 reps'] },
     { n:'Pull Day', muscles:['back','biceps'], exercises:['Resistance Band Row','Band Pull-Aparts','Dumbbell Row','Dumbbell Curl'],
-      warmup:['Cat-Cow × 10','Band Pull-Aparts × 15'] },
+      warmup:['5 min jumping jacks','Arm Circles — 10 each','Hip Circles — 10 each','Inchworm — 8 reps','World\'s Greatest Stretch — 5 each side','Jumping Jacks — 20 reps'] },
     { n:'Legs Day', muscles:['legs','glutes'], exercises:['Bodyweight Squat','Bulgarian Split Squat','Hip Thrust BW','Single Leg RDL','Calf Raise'],
-      warmup:['Hip Circles × 10','Leg Swings × 15'] },
+      warmup:['5 min jumping jacks','Arm Circles — 10 each','Hip Circles — 10 each','Inchworm — 8 reps','World\'s Greatest Stretch — 5 each side','Jumping Jacks — 20 reps'] },
     { n:'Core & Cardio', muscles:['core','full_body'], exercises:['Plank','Mountain Climbers','Russian Twists','Burpees','Dead Bug'],
-      warmup:['Jumping Jacks × 20','Arm Circles × 10'] }
+      warmup:['5 min jumping jacks','Arm Circles — 10 each','Hip Circles — 10 each','Inchworm — 8 reps','World\'s Greatest Stretch — 5 each side','Jumping Jacks — 20 reps'] }
   ],
   getSplitDay() {
     try {
@@ -658,18 +664,35 @@ const MuscleEngine = {
     } catch(e) { return []; }
   },
   injuryWarning(exerciseName) {
-    const injuries = (S.g('injuries')||[]).filter(i=>!i.recovered);
+    const injuries = S.g('user.injuries') || [];
     if (!injuries.length || typeof ExDB === 'undefined') return null;
     const ex = ExDB.byName(exerciseName);
     if (!ex || !ex.joint) return null;
     for (const inj of injuries) {
+      const bodyPart = typeof inj === 'string' ? inj : (inj.bodyPart || '');
+      const recovered = typeof inj === 'object' ? inj.recovered : false;
+      if (recovered) continue;
       const j = ex.joint;
-      if (/shoulder/i.test(inj.bodyPart) && (j.shoulder||0)>=2) return inj.bodyPart;
-      if (/knee/i.test(inj.bodyPart) && (j.knee||0)>=2) return inj.bodyPart;
-      if (/back/i.test(inj.bodyPart) && (j.spine||0)>=2) return inj.bodyPart;
-      if (/elbow/i.test(inj.bodyPart) && (j.elbow||0)>=2) return inj.bodyPart;
+      if (/shoulder/i.test(bodyPart) && (j.shoulder||0) >= 2) return bodyPart;
+      if (/knee/i.test(bodyPart) && (j.knee||0) >= 2) return bodyPart;
+      if (/back/i.test(bodyPart) && (j.spine||0) >= 2) return bodyPart;
+      if (/elbow/i.test(bodyPart) && (j.elbow||0) >= 2) return bodyPart;
+      if (/hip/i.test(bodyPart) && (j.hip||0) >= 2) return bodyPart;
+      if (/wrist/i.test(bodyPart) && (j.elbow||0) >= 1) return bodyPart;
+      if (/neck/i.test(bodyPart) && (j.spine||0) >= 1) return bodyPart;
     }
     return null;
+  },
+  hasActiveInjuries() {
+    const injuries = S.g('user.injuries') || [];
+    return injuries.filter(function(i) {
+      return typeof i === 'string' ? true : !i.recovered;
+    }).length > 0;
+  },
+  safeExercises(exerciseList) {
+    return exerciseList.filter(function(name) {
+      return !MuscleEngine.injuryWarning(name);
+    });
   },
   bodyMapColors() {
     const st = this.status();
@@ -761,56 +784,90 @@ const CoachEngine = {
       const weeklyGoal = S.g('user.weeklyGoal') || 4;
       const weekWkts = StreakEngine.weekWorkouts();
       const tone = S.g('settings.coachTone') || 'motivational';
+      const goal = S.g('user.goal') || 'hypertrophy';
+      const user = S.g('user') || {};
+      const ws = S.g('workouts') || [];
+      const injuries = (S.g('user.injuries') || []).filter(function(i) {
+        return typeof i === 'string' ? true : !i.recovered;
+      });
       const msgs = [];
       function m3(mot, sci, hrd) { return tone==='scientific'?sci:tone==='hardcore'?hrd:mot; }
 
-      if ((r.sleep||7.5) < 6) msgs.push({t:'Critical Sleep Debt',
-        m:m3('Under 6 hours impairs muscle protein synthesis and performance. Prioritise 8+ hours tonight.',
-             'Sub-6h sleep reduces MPS by ~18% and impairs CNS recovery. Sleep duration must increase tonight.',
-             'Under 6 hours. That\'s a weakness. Fix it tonight — no excuses.'),
-        i:'😴',c:'#ff4444'});
-      else if ((r.sleep||7.5) >= 8) msgs.push({t:'Optimal Recovery',
-        m:m3('8+ hours logged. Sleep is your most powerful performance tool.',
-             '8h+ sleep: peak GH release window, full MPS cycle, CNS restoration complete.',
-             '8 hours. Good. Don\'t waste it — get in there and perform.'),
-        i:'⚡',c:'#10B981'});
+      if (injuries.length) {
+        msgs.push({t:'Injury Management',
+          m: m3(
+            injuries.length+' active injur'+(injuries.length>1?'ies':'y')+' detected. Flagged exercises are modified in your plan. Listen to your body.',
+            'Biomechanical load restriction active for '+injuries.length+' region'+(injuries.length>1?'s':'')+'. Exercise selection algorithm has filtered high-risk movements.',
+            injuries.length+' injuries. Work around them — not through them. Modified plan is active.'
+          ),
+          i:'⚠️',c:'#ff453a'});
+      }
 
-      if ((r.soreness||3) >= 7) msgs.push({t:'High Soreness Alert',
-        m:m3('Significant soreness detected. Target fresh muscle groups or reduce volume 25%.',
-             'Elevated soreness index (7+/10). DOMS present — reduce volume 20-25% or pivot to fresh muscle groups.',
-             'High soreness. Adjust, not quit. Hit different muscles or cut volume. Move forward.'),
-        i:'💊',c:'#f5c842'});
+      const sleep = r.sleep || 7.5;
+      if (sleep < 6) msgs.push({t:'Critical Sleep Debt',
+        m:m3('Under 6 hours hurts muscle protein synthesis and performance. 8+ hours tonight is the priority.',
+             'Sub-6h sleep: MPS reduced ~18%, cortisol elevated, CNS recovery incomplete. Sleep is the primary intervention tonight.',
+             'Under 6 hours. Weak. Fix it — sleep is where you grow.'),
+        i:'😴',c:'#ff453a'});
+      else if (sleep >= 8) msgs.push({t:'Optimal Recovery',
+        m:m3('8+ hours logged — your body is primed. Peak output is available today.',
+             '8h+ sleep: full GH release window, complete MPS cycle, optimal CNS state.',
+             '8 hours. Now perform. No excuses today.'),
+        i:'⚡',c:'#30d158'});
 
-      if (score >= 85) msgs.push({t:'Peak Performance Window',
-        m:m3('Every metric is optimal. Today is the day to attempt PRs and push your working weights.',
-             'All biometric indicators at peak. Optimal window for maximal strength expression and PR attempts.',
-             'Readiness at 85+. No excuses. Load the bar. Break records. Today.'),
-        i:'🔥',c:'#10B981'});
+      if (goal === 'fat_loss') {
+        const calories = S.g('nutrition.todayCalories') || 0;
+        const target = user.calorieTarget || 2000;
+        if (calories > target * 0.95) msgs.push({t:'Calorie Target',
+          m:m3('You\'re at or above your calorie target. Keep activity high and consider a short cardio session after training.',
+               'Caloric intake approaching target threshold. Post-training LISS recommended for additional deficit.',
+               'At your calories. Don\'t blow it. Hit the cardio after training.'),
+          i:'🔥',c:'#ff9f0a'});
+      }
+
+      if (goal === 'strength') {
+        const lastWkt = ws[ws.length-1];
+        if (lastWkt && daysAgo(lastWkt.date) >= 2) msgs.push({t:'Strength Window',
+          m:m3('CNS is recovered after 2+ rest days. Today is an excellent day to attempt heavy singles or PRs.',
+               '48h+ post-training: phosphocreatine resynthesis complete, neural drive optimal. Ideal for maximal effort.',
+               'Rested. Load the bar heavy. Today\'s the day for big numbers.'),
+          i:'💪',c:'#30d158'});
+      }
+
+      if (goal === 'hypertrophy') {
+        const soreness = r.soreness || 3;
+        if (soreness <= 2 && score >= 70) msgs.push({t:'Hypertrophy Window',
+          m:m3('Low soreness and high readiness — perfect conditions for progressive overload. Push your working weights up today.',
+               'Minimal DOMS with high readiness index. Anabolic conditions optimal. Increase working weights 2-5%.',
+               'Zero soreness, high readiness. Go heavier. No settling for the same weights.'),
+          i:'📈',c:'var(--c1)'});
+      }
 
       if (streak >= 5) msgs.push({t:'Deload Signal',
-        m:m3(streak+' consecutive training days. Schedule a deload — same frequency, 50% volume.',
-             streak+' consecutive training days. Accumulated fatigue risk elevated. Implement deload protocol: maintain frequency, reduce intensity 40-50%.',
-             streak+' days straight. CNS needs a reset. Deload week — same schedule, half the volume. Non-negotiable.'),
+        m:m3(streak+' days straight. Schedule deload this week — same frequency, 50% volume.',
+             streak+'-day consecutive training. Cumulative fatigue index elevated. Deload protocol: maintain frequency, reduce intensity 40-50%.',
+             streak+' days. CNS is cooked. Deload week — same schedule, half volume. Non-negotiable.'),
         i:'⚠️',c:'#f5c842'});
 
       const rem = weeklyGoal - weekWkts.length;
-      if (rem > 0 && rem <= 2) msgs.push({t:'Weekly Goal In Reach',
-        m:m3(weekWkts.length+'/'+weeklyGoal+' done. '+rem+' more to hit your target.',
-             'Training frequency: '+weekWkts.length+'/'+weeklyGoal+' sessions. '+rem+' required to meet weekly volume prescription.',
+      if (rem > 0 && rem <= 2 && new Date().getDay() >= 4) msgs.push({t:'Weekly Goal',
+        m:m3(weekWkts.length+'/'+weeklyGoal+' sessions done. '+rem+' to go — finish strong this week.',
+             'Training frequency: '+weekWkts.length+'/'+weeklyGoal+'. '+rem+' sessions required to meet weekly volume prescription.',
              weekWkts.length+'/'+weeklyGoal+' done. '+rem+' left. Finish what you started.'),
         i:'🎯',c:'var(--c1)'});
 
-      if ((r.hydration||2.5) < 1.5) msgs.push({t:'Hydration Critical',
-        m:m3('Low water intake detected. Dehydration reduces strength up to 20%. Drink 500ml now.',
-             'Fluid intake <1.5L. Hypohydration at 2% body mass loss reduces strength by 19%. Increase fluid intake immediately.',
-             'Under 1.5L of water. Drink now. Dehydration kills performance. 500ml before your next rep.'),
+      const hydration = r.hydration || 2.5;
+      if (hydration < 1.5) msgs.push({t:'Hydration Alert',
+        m:m3('Low hydration reduces strength by up to 20%. Drink 500ml immediately before training.',
+             'Fluid deficit detected. Hypohydration at 2% body mass loss reduces strength output 19%. Hydrate now.',
+             'Under 1.5L. Drink 500ml now. Dehydration is a performance killer.'),
         i:'💧',c:'var(--c1)'});
 
-      if (!msgs.length) msgs.push({t:'Looking Strong',
-        m:m3('Recovery metrics solid. Execute the plan, track sets, keep the streak alive.',
-             'All recovery indices nominal. Execute planned sets, maintain progressive overload protocol.',
-             'Metrics are solid. No excuses. Go train. Track every set.'),
-        i:'✅',c:'#10B981'});
+      if (!msgs.length) msgs.push({t:'All Systems Go',
+        m:m3('Recovery metrics solid. Execute the plan, track every set, keep the streak alive.',
+             'All recovery indices nominal. Execute planned progressive overload protocol.',
+             'Metrics solid. No excuses. Train hard, track everything.'),
+        i:'✅',c:'#30d158'});
 
       return msgs.slice(0,4);
     } catch(e) { return []; }
