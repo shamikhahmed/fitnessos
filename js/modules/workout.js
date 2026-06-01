@@ -307,6 +307,9 @@ let _wktElapsed = 0;
 let _restTimer = null;
 let _restRemaining = 0;
 let _restInterval = null;
+let _wktNotes = {};
+let _supersetMode = false;
+let _quickMode = false;
 
 /* ── WORKOUT HOME SCREEN ── */
 reg('workout', function() {
@@ -371,6 +374,7 @@ reg('workout', function() {
 
     '<div style="padding:16px 16px 0">' +
     '<button class="btn btn-primary" onclick="startWorkout()">Start Workout 💪</button>' +
+    '<button class="btn btn-secondary" style="margin-top:10px" onclick="startQuickWorkout()">⚡ Quick Workout (20 min)</button>' +
     '<button class="btn btn-secondary" style="margin-top:10px" onclick="showBrowseExercises()">🔍 Browse All Exercises</button>' +
     '<button class="btn" style="margin-top:10px;background:rgba(var(--c1-rgb),0.1);border:1px solid rgba(var(--c1-rgb),0.2);color:var(--c1)" onclick="showAddCustomExercise()">+ Add Custom Exercise</button>' +
     '</div>' +
@@ -378,220 +382,228 @@ reg('workout', function() {
 });
 
 /* ── ACTIVE WORKOUT SCREEN ── */
-reg('active_workout', function() {
+reg('active', function() {
   if (!_wkt) { go('workout'); return ''; }
   const user = S.g('user') || {};
-  const totalSets = _wkt.exercises.reduce((a,e)=>a+e.sets.length,0);
-  const doneSets = _wkt.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
-  const pct = totalSets > 0 ? Math.round((doneSets/totalSets)*100) : 0;
-  const currentEx = _wkt.exercises.find(ex => ex.sets.some(s => !s.done));
-  const currentExName = currentEx ? currentEx.name : 'All Sets Done! 🎉';
+  const goal = user.goal || 'hypertrophy';
+  const restSecs = user.restSecs || 120;
+  const totalSets = _wkt.exercises.reduce(function(a,ex){return a+(ex.sets||[]).length;},0);
+  const doneSets = _wkt.exercises.reduce(function(a,ex){return a+(ex.sets||[]).filter(function(s){return s.done;}).length;},0);
+  const progress = totalSets > 0 ? Math.round((doneSets/totalSets)*100) : 0;
 
-  let exHTML = _wkt.exercises.map((ex, exIdx) => {
-    const dbEx = ExDB.byName(ex.name);
-    const injWarn = MuscleEngine.injuryWarning(ex.name);
+  const header =
+    '<div class="wkt-header" id="wkt-header">' +
+    '<div class="wkt-progress-bar-wrap"><div class="wkt-progress-bar" id="wkt-pb" style="width:'+progress+'%"></div></div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px">' +
+    '<div>' +
+    '<div style="font-size:11px;color:var(--txt3);font-weight:700;text-transform:uppercase;letter-spacing:0.08em">'+esc(_wkt.name)+'</div>' +
+    '<div style="font-size:22px;font-weight:900;color:var(--c1);font-variant-numeric:tabular-nums" id="wkt-timer-display">'+fmtTime(_wktElapsed)+'</div>' +
+    '</div>' +
+    '<div style="text-align:center">' +
+    '<div style="font-size:18px;font-weight:800;color:var(--txt)">'+doneSets+'/'+totalSets+'</div>' +
+    '<div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.06em">Sets Done</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px">' +
+    '<button onclick="toggleSupersetMode()" style="padding:8px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;touch-action:manipulation;border:1px solid var(--border);background:'+(_supersetMode?'var(--grad)':'var(--bg3)')+';color:'+(_supersetMode?'#fff':'var(--txt3)')+'">SS</button>' +
+    '<button onclick="confirmFinishWorkout()" style="padding:8px 16px;border-radius:20px;background:var(--grad);color:#fff;font-size:13px;font-weight:700;cursor:pointer;touch-action:manipulation;border:none">Finish</button>' +
+    '</div></div></div>';
+
+  const cards = _wkt.exercises.map(function(ex, exIdx) {
+    const exData = ExDB.byName(ex.name);
     const prev = ProgEngine.prevString(ex.name);
-    const goal = user.goal || 'hypertrophy';
-    const dpNote = ProgEngine.doubleProgression(ex.name, goal);
-    const doneCount = ex.sets.filter(s=>s.done).length;
-    const allDone = doneCount === ex.sets.length && ex.sets.length > 0;
+    const suggest = WeightEngine.suggest(ex.name, user);
+    const diff = exData ? GUIDANCE.diffLabel(exData.diff) : null;
+    const needsSpot = GUIDANCE.needsSpotter(ex.name);
+    const allDone = (ex.sets||[]).length > 0 && (ex.sets||[]).every(function(s){return s.done;});
+    const rec = GUIDANCE.setsReps(goal);
 
-    let setsHTML = ex.sets.map((set, si) => {
-      const isDone = !!set.done;
-      const isPR = !!set.isPR;
-      const rowCls = 'set-row' + (isDone ? (isPR ? ' pr' : ' done') : '');
-      return '<div class="'+rowCls+'" id="set-'+exIdx+'-'+si+'">' +
-        '<div class="set-num'+(isDone?' done':'')+'">'+esc(isDone ? (isPR ? '🏆' : '✓') : (si+1))+'</div>' +
-        '<input type="number" class="set-inp" value="'+esc(set.weight||'')+'" placeholder="kg" inputmode="decimal" ' +
-          'onchange="updateSet('+exIdx+','+si+',\'weight\',this.value)" '+(isDone?'disabled':'')+' style="color:var(--txt)">' +
-        '<div class="set-x">×</div>' +
-        '<input type="number" class="set-inp" value="'+esc(set.reps||'')+'" placeholder="reps" inputmode="numeric" ' +
-          'onchange="updateSet('+exIdx+','+si+',\'reps\',this.value)" '+(isDone?'disabled':'')+' style="color:var(--txt)">' +
-        '<button class="set-check'+(isDone?' done':'')+(isPR?' pr':'')+'" onclick="doneSet('+exIdx+','+si+')">' +
-          (isDone ? svgCheck() : '') + '</button>' +
+    const setsHTML = (ex.sets||[]).map(function(set, sIdx) {
+      const isDone = set.done;
+      const isPR = set._isPR;
+      return '<div class="set-row' + (isDone?' done':'') + (isPR?' pr':'') + '" id="set-'+exIdx+'-'+sIdx+'">' +
+        '<div class="set-num">'+(sIdx+1)+'</div>' +
+        '<div class="set-inputs">' +
+        '<div style="display:flex;flex-direction:column;align-items:center">' +
+        '<div style="font-size:9px;color:var(--txt3);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.06em">KG</div>' +
+        '<input type="number" class="set-inp" placeholder="'+(suggest||0)+'" value="'+(set.weight||'')+'" ' +
+        'onchange="_setVal('+exIdx+','+sIdx+',\'weight\',parseFloat(this.value)||0)" ' +
+        'inputmode="decimal" style="width:64px">' +
+        '</div>' +
+        '<div style="font-size:16px;color:var(--txt3);margin:0 4px">×</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:center">' +
+        '<div style="font-size:9px;color:var(--txt3);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.06em">REPS</div>' +
+        '<input type="number" class="set-inp" placeholder="'+rec.reps.split('-')[0]+'" value="'+(set.reps||'')+'" ' +
+        'onchange="_setVal('+exIdx+','+sIdx+',\'reps\',parseInt(this.value)||0)" ' +
+        'inputmode="numeric" style="width:56px">' +
+        '</div>' +
+        '</div>' +
+        '<button class="set-check'+(isDone?' done':'')+'" onclick="_doneSet('+exIdx+','+sIdx+')">' +
+        (isPR ? '🏆' : isDone ? '✓' : '') +
+        '</button>' +
+        (isPR ? '<div style="position:absolute;top:-8px;right:40px;background:linear-gradient(135deg,#ffd60a,#ff9f0a);color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;letter-spacing:0.06em;animation:prBounce 0.4s var(--spring) both">PR!</div>' : '') +
         '</div>';
     }).join('');
 
-    return '<div class="ex-card" id="ex-card-'+exIdx+'">' +
-      '<div class="ex-card-hdr" onclick="toggleExInfo('+exIdx+')">' +
-      '<div class="ex-icon'+(allDone?' done':'')+'">'+esc(dbEx?dbEx.em:'💪')+'</div>' +
-      '<div style="flex:1">' +
-      '<div class="ex-name">'+esc(ex.name)+'</div>' +
-      '<div style="margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
-      (dbEx?'<span class="muscle-chip">'+esc(dbEx.pri)+'</span>':'') +
-      (injWarn?'<span class="ex-warn">⚠️ '+esc(injWarn)+'</span>':'') +
-      '</div></div>' +
-      '<div class="ex-progress">'+doneCount+'/'+ex.sets.length+'</div>' +
+    const noteVal = _wktNotes[ex.name] || '';
+
+    return '<div class="ex-card' + (allDone?' done':'') + '" id="ex-card-'+exIdx+'">' +
+      '<div class="ex-card-header">' +
+      '<div style="font-size:28px;width:40px;text-align:center;transition:all 0.3s">'+(allDone?'✅':(exData?exData.em:'💪'))+'</div>' +
+      '<div style="flex:1;min-width:0">' +
+      '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+      '<div style="font-size:15px;font-weight:700;color:var(--txt)">'+esc(ex.name)+'</div>' +
+      (diff ? '<span style="font-size:9px;font-weight:700;color:'+diff.c+';text-transform:uppercase">'+diff.l+'</span>' : '') +
+      (needsSpot ? '<span style="font-size:9px;color:#ff453a;font-weight:700">⚠️SPOT</span>' : '') +
       '</div>' +
-      '<div class="ex-card-body">' +
-      (prev?'<div class="ex-prev">'+esc(prev)+'</div>':'') +
-      (dbEx&&dbEx.cues?'<div class="ex-cue-inline">'+esc(dbEx.cues)+'</div>':'') +
-      (dpNote?'<div class="ex-suggest">'+esc(dpNote.note)+'</div>':'') +
-      '<div id="ex-info-'+exIdx+'" style="display:none">' +
-      (dbEx&&dbEx.mistakes?'<div class="ex-cue">⚠️ '+esc(dbEx.mistakes)+'</div>':'') +
+      (prev ? '<div style="font-size:12px;color:var(--c1);margin-top:2px">'+esc(prev)+'</div>' : '') +
+      (exData ? '<div style="font-size:11px;color:var(--txt3);margin-top:1px">'+esc(exData.cues.slice(0,60))+'...</div>' : '') +
       '</div>' +
-      setsHTML +
-      '<div style="display:flex;gap:10px;margin-top:10px">' +
-      '<button class="ex-add-set" onclick="addSet('+exIdx+')">+ Add Set</button>' +
-      '<button class="ex-swap" onclick="swapExercise('+exIdx+')">🔄 Swap</button>' +
-      '</div></div></div>';
+      '<button onclick="showExerciseDetail(\''+esc(ex.name)+'\')" style="width:30px;height:30px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);font-size:12px;cursor:pointer;touch-action:manipulation;flex-shrink:0">ℹ️</button>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:28px 1fr 36px;gap:8px;padding:8px 16px 4px;border-bottom:1px solid var(--border)">' +
+      '<div style="font-size:10px;color:var(--txt3);font-weight:700;text-align:center">SET</div>' +
+      '<div style="font-size:10px;color:var(--txt3);font-weight:700;text-align:center">WEIGHT × REPS</div>' +
+      '<div style="font-size:10px;color:var(--txt3);font-weight:700;text-align:center">✓</div>' +
+      '</div>' +
+      '<div class="sets-list">'+setsHTML+'</div>' +
+      '<div style="padding:10px 16px;display:flex;gap:8px;border-top:1px solid var(--border)">' +
+      '<button onclick="_addSet('+exIdx+')" style="flex:1;padding:10px;border-radius:10px;background:var(--bg4);border:1px solid var(--border);color:var(--txt2);font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation">+ Set</button>' +
+      '<button onclick="_toggleNote('+exIdx+')" style="padding:10px 14px;border-radius:10px;background:var(--bg4);border:1px solid var(--border);color:var(--txt2);font-size:13px;cursor:pointer;touch-action:manipulation">📝</button>' +
+      '</div>' +
+      '<div id="note-'+exIdx+'" style="display:'+(noteVal?'block':'none')+';padding:0 16px 12px">' +
+      '<textarea class="field" placeholder="How did this feel? Form notes, energy level..." ' +
+      'style="height:72px;resize:none;font-size:13px" ' +
+      'oninput="_wktNotes[\''+esc(ex.name)+'\'] = this.value">'+esc(noteVal)+'</textarea>' +
+      '</div>' +
+      '</div>';
   }).join('');
 
-  return '<div class="wkt-header">' +
-    '<div class="wkt-progress-bar-wrap"><div class="wkt-progress-bar" id="wkt-prog" style="width:'+pct+'%"></div></div>' +
-    '<div class="wkt-meta">' +
-    '<div>' +
-    '<div class="wkt-name">'+esc(currentExName)+'</div>' +
-    '<div class="wkt-sets-count">'+doneSets+' / '+totalSets+' sets</div>' +
-    '</div>' +
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
-    '<div class="wkt-timer" id="wkt-timer">'+fmtTime(_wktElapsed)+'</div>' +
-    '<button class="btn btn-danger btn-sm" onclick="finishWorkout()" style="-webkit-appearance:none;touch-action:manipulation">Finish</button>' +
+  const restBar =
+    '<div id="rest-sheet" style="position:fixed;bottom:0;left:0;right:0;z-index:400;' +
+    'background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border);' +
+    'padding:16px 24px calc(20px + var(--safe));transform:translateY(100%);' +
+    'transition:transform 0.4s var(--ease);will-change:transform">' +
+    '<div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>' +
+    '<div style="text-align:center;margin-bottom:14px">' +
+    '<div style="font-size:13px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Rest Timer</div>' +
+    '<div style="position:relative;width:100px;height:100px;margin:0 auto">' +
+    '<svg width="100" height="100" viewBox="0 0 100 100">' +
+    '<circle cx="50" cy="50" r="44" fill="none" stroke="var(--bg4)" stroke-width="8"/>' +
+    '<circle id="rest-ring" cx="50" cy="50" r="44" fill="none" stroke="var(--c1)" stroke-width="8" ' +
+    'stroke-dasharray="276.5" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 50 50)"/>' +
+    '</svg>' +
+    '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">' +
+    '<div style="font-size:28px;font-weight:900;color:var(--txt);font-variant-numeric:tabular-nums" id="rest-countdown">'+fmtTime(restSecs)+'</div>' +
+    '<div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.06em">seconds</div>' +
     '</div></div></div>' +
-    exHTML +
-    '<div style="padding:16px;padding-bottom:calc(16px + var(--safe))">' +
-    '<button class="btn btn-danger" onclick="finishWorkout()">Finish Workout</button>' +
-    '</div>' +
-    _restSheetHTML();
+    '<div style="display:flex;gap:10px">' +
+    '<button onclick="skipRest()" style="flex:1;padding:14px;border-radius:14px;background:var(--bg4);border:1px solid var(--border);color:var(--txt2);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation">Skip</button>' +
+    '<button onclick="addRestTime(30)" style="flex:1;padding:14px;border-radius:14px;background:rgba(var(--c1-rgb),0.1);border:1px solid rgba(var(--c1-rgb),0.2);color:var(--c1);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation">+30s</button>' +
+    '</div></div>';
+
+  return header + '<div style="padding:12px 16px 4px">' + cards + '</div>' + restBar + '<div style="height:32px"></div>';
 });
 
-function _restSheetHTML() {
-  const restSecs = S.g('user.restSecs') || 120;
-  const c = 2*Math.PI*48;
-  return '<div id="rest-sheet"><div class="rest-handle"></div>' +
-    '<div class="rest-inner">' +
-    '<div class="rest-title-label">Rest Timer</div>' +
-    '<div class="rest-ring-wrap">' +
-    '<svg width="120" height="120" viewBox="0 0 120 120">' +
-    '<circle cx="60" cy="60" r="48" fill="none" stroke="var(--bg4)" stroke-width="8"/>' +
-    '<circle id="rest-arc" cx="60" cy="60" r="48" fill="none" stroke="var(--c1)" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="0"/>' +
-    '</svg>' +
-    '<div class="rest-count"><div class="rest-count-num" id="rest-num">'+restSecs+'</div><div class="rest-count-label">REST</div></div>' +
-    '</div>' +
-    '<div class="rest-btns">' +
-    '<button class="rest-btn" onclick="adjustRest(-30)">−30s</button>' +
-    '<button class="rest-btn skip" onclick="skipRest()">Skip ›</button>' +
-    '<button class="rest-btn" onclick="adjustRest(30)">+30s</button>' +
-    '</div></div></div>';
+/* ── Workout control functions ── */
+window._setVal = function(exIdx, sIdx, field, val) {
+  if (!_wkt || !_wkt.exercises[exIdx]) return;
+  if (!_wkt.exercises[exIdx].sets[sIdx]) return;
+  _wkt.exercises[exIdx].sets[sIdx][field] = val;
+};
+
+window._doneSet = function(exIdx, sIdx) {
+  if (!_wkt) return;
+  const ex = _wkt.exercises[exIdx];
+  if (!ex || !ex.sets[sIdx]) return;
+  const set = ex.sets[sIdx];
+  const w = set.weight || 0;
+  const r = set.reps || 0;
+
+  set.done = !set.done;
+
+  if (set.done && w > 0 && r > 0) {
+    const isPR = ProgEngine.checkPR(ex.name, w, r);
+    set._isPR = isPR;
+    if (isPR) {
+      ProgEngine.savePR(ex.name, w, r, today());
+      toast('🏆 New PR on ' + ex.name + '!', 'pr', 5000);
+      haptic([50, 50, 100]);
+    } else {
+      haptic(25);
+    }
+
+    const nextSet = ex.sets[sIdx + 1];
+    if (nextSet && !nextSet.done && !nextSet.weight) {
+      nextSet.weight = w;
+      nextSet.reps = r;
+    }
+
+    const restSecs = (S.g('user.restSecs') || 120);
+    if (restSecs > 0) startRestTimer(restSecs);
+  } else {
+    set._isPR = false;
+    haptic(15);
+  }
+
+  _updateSetRow(exIdx, sIdx, set);
+  _updateProgress();
+  AchEngine.check();
+};
+
+function _updateSetRow(exIdx, sIdx, set) {
+  const row = document.getElementById('set-'+exIdx+'-'+sIdx);
+  if (!row) { go('active'); return; }
+  row.className = 'set-row' + (set.done?' done':'') + (set._isPR?' pr':'');
+  const btn = row.querySelector('.set-check');
+  if (btn) {
+    btn.className = 'set-check' + (set.done?' done':'');
+    btn.textContent = set._isPR ? '🏆' : set.done ? '✓' : '';
+  }
+  const exCard = document.getElementById('ex-card-'+exIdx);
+  if (exCard && _wkt.exercises[exIdx]) {
+    const ex = _wkt.exercises[exIdx];
+    const allDone = ex.sets.length > 0 && ex.sets.every(function(s){return s.done;});
+    exCard.className = 'ex-card' + (allDone?' done':'');
+    const emojiEl = exCard.querySelector('.ex-card-header > div:first-child');
+    const exData = ExDB.byName(ex.name);
+    if (emojiEl) emojiEl.textContent = allDone ? '✅' : (exData ? exData.em : '💪');
+  }
 }
 
-/* ── Workout control functions ── */
-window.startWorkout = function() {
-  const user = S.g('user') || {};
-  const splitDay = SplitEngine.getSplitDay();
-  _wkt = {
-    id: Date.now().toString(),
-    name: splitDay.n || 'Workout',
-    date: isoNow(),
-    splitDay: user.splitDay || 1,
-    exercises: (splitDay.exercises || []).map(name => {
-      const ex = ExDB.byName(name);
-      const suggested = WeightEngine.suggest(name, user);
-      const defaultSets = user.goal === 'strength' ? 5 : (user.goal === 'fat_loss' ? 3 : 4);
-      return {
-        name,
-        muscles: ex ? ex.muscles : {},
-        sets: Array.from({length: defaultSets}, (_, i) => ({
-          setNum: i+1, weight: suggested || '', reps: '', done: false
-        }))
-      };
-    }),
-    notes: '', started: isoNow(), totalVol: 0, duration: 0
-  };
-  _wktElapsed = 0;
-  clearInterval(_wktTimer);
-  _wktTimer = setInterval(() => {
-    _wktElapsed++;
-    const el = document.getElementById('wkt-timer');
-    if (el) el.textContent = fmtTime(_wktElapsed);
-  }, 1000);
-  go('active_workout');
-};
+function _updateProgress() {
+  const totalSets = _wkt.exercises.reduce(function(a,ex){return a+(ex.sets||[]).length;},0);
+  const doneSets = _wkt.exercises.reduce(function(a,ex){return a+(ex.sets||[]).filter(function(s){return s.done;}).length;},0);
+  const pct = totalSets > 0 ? Math.round((doneSets/totalSets)*100) : 0;
+  const pb = document.getElementById('wkt-pb');
+  if (pb) pb.style.width = pct + '%';
+}
 
-window.updateSet = function(exIdx, si, field, val) {
+window._addSet = function(exIdx) {
   if (!_wkt || !_wkt.exercises[exIdx]) return;
-  _wkt.exercises[exIdx].sets[si][field] = parseFloat(val) || val;
+  const ex = _wkt.exercises[exIdx];
+  const lastSet = ex.sets[ex.sets.length - 1] || {};
+  ex.sets.push({ weight: lastSet.weight || 0, reps: lastSet.reps || 0, done: false });
+  go('active');
 };
 
-window.doneSet = function(exIdx, si) {
-  if (!_wkt || !_wkt.exercises[exIdx]) return;
-  const set = _wkt.exercises[exIdx].sets[si];
-  const w = parseFloat(set.weight) || 0;
-  const r = parseFloat(set.reps) || 0;
-  set.done = true;
-  set.weight = w; set.reps = r;
-  if (navigator.vibrate) navigator.vibrate(30);
-
-  // PR check
-  const name = _wkt.exercises[exIdx].name;
-  const isPR = ProgEngine.checkPR(name, w, r);
-  if (isPR) {
-    ProgEngine.savePR(name, w, r, today());
-    set.isPR = true;
-    if (!_wkt.prs) _wkt.prs = [];
-    if (!_wkt.prs.includes(name)) _wkt.prs.push(name);
-    toast('🏆 New PR: ' + name + '!', 'pr', 4000);
+window._toggleNote = function(exIdx) {
+  const el = document.getElementById('note-' + exIdx);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (el.style.display === 'block') {
+    const ta = el.querySelector('textarea');
+    if (ta) setTimeout(function(){ta.focus();}, 100);
   }
-
-  // Update vol
-  _wkt.totalVol = _wkt.exercises.reduce((a, ex) =>
-    a + ex.sets.filter(s => s.done).reduce((b, s) => b + ((parseFloat(s.weight)||0) * (parseFloat(s.reps)||0)), 0), 0);
-
-  // Update progress bar
-  const totalSets = _wkt.exercises.reduce((a,e)=>a+e.sets.length,0);
-  const doneSets = _wkt.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
-  const pct = Math.round((doneSets/totalSets)*100);
-  const prog = document.getElementById('wkt-prog');
-  if (prog) prog.style.width = pct + '%';
-
-  // Update set row
-  const row = document.getElementById('set-'+exIdx+'-'+si);
-  if (row) {
-    row.className = 'set-row ' + (isPR ? 'pr' : 'done');
-    const numEl = row.querySelector('.set-num');
-    numEl.className = 'set-num done';
-    numEl.textContent = isPR ? '🏆' : '✓';
-    const checkBtn = row.querySelector('.set-check');
-    checkBtn.className = 'set-check done' + (isPR ? ' pr' : '');
-    checkBtn.innerHTML = svgCheck();
-    row.querySelectorAll('.set-inp').forEach(inp => inp.disabled = true);
-  }
-
-  // Update ex-card progress counter + icon
-  const exCard = document.getElementById('ex-card-'+exIdx);
-  if (exCard) {
-    const doneCount = _wkt.exercises[exIdx].sets.filter(s=>s.done).length;
-    const progEl = exCard.querySelector('.ex-progress');
-    if (progEl) progEl.textContent = doneCount + '/' + _wkt.exercises[exIdx].sets.length;
-    if (doneCount === _wkt.exercises[exIdx].sets.length) {
-      const iconEl = exCard.querySelector('.ex-icon');
-      if (iconEl) iconEl.classList.add('done');
-    }
-  }
-
-  // Update sticky header
-  const currentEx = _wkt.exercises.find(ex => ex.sets.some(s => !s.done));
-  const nameEl = document.querySelector('.wkt-name');
-  if (nameEl) nameEl.textContent = currentEx ? currentEx.name : 'All Sets Done! 🎉';
-  const setsEl = document.querySelector('.wkt-sets-count');
-  if (setsEl) setsEl.textContent = doneSets + ' / ' + totalSets + ' sets';
-
-  // Start rest timer
-  const restSecs = S.g('user.restSecs') || 120;
-  startRestTimer(restSecs);
 };
 
-window.addSet = function(exIdx) {
-  if (!_wkt || !_wkt.exercises[exIdx]) return;
-  const sets = _wkt.exercises[exIdx].sets;
-  const last = sets[sets.length-1] || {};
-  sets.push({ setNum: sets.length+1, weight: last.weight||'', reps: last.reps||'', done: false });
-  go('active_workout');
-};
-
-window.toggleExInfo = function(exIdx) {
-  const el = document.getElementById('ex-info-'+exIdx);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+window.toggleSupersetMode = function() {
+  _supersetMode = !_supersetMode;
+  toast(_supersetMode ? '🔗 Superset mode ON' : 'Superset mode off', 'info');
+  const btn = document.querySelector('[onclick="toggleSupersetMode()"]');
+  if (btn) {
+    btn.style.background = _supersetMode ? 'var(--grad)' : 'var(--bg3)';
+    btn.style.color = _supersetMode ? '#fff' : 'var(--txt3)';
+  }
 };
 
 window.swapExercise = function(exIdx) {
@@ -599,114 +611,180 @@ window.swapExercise = function(exIdx) {
   const name = _wkt.exercises[exIdx].name;
   const subs = SplitEngine.getSubstitutes(name, '');
   if (!subs.length) { toast('No substitutes available', 'warn'); return; }
-  const body = subs.map((s, i) =>
-    '<button class="btn btn-secondary" style="margin-bottom:10px;text-align:left" onclick="_wkt.exercises['+exIdx+'].name=\''+esc(s)+'\';closeModal();go(\'active_workout\')">'+esc(s)+'</button>'
-  ).join('');
+  const body = subs.map(function(s, i) {
+    return '<button class="btn btn-secondary" style="margin-bottom:10px;text-align:left" onclick="_wkt.exercises['+exIdx+'].name=\''+esc(s)+'\';closeModal();go(\'active\')">'+esc(s)+'</button>';
+  }).join('');
   modal('Swap: ' + name, body, '<button class="btn btn-ghost" onclick="closeModal()" style="margin-top:8px">Keep original</button>');
 };
 
-window.finishWorkout = function() {
-  if (!_wkt) return;
-  clearInterval(_wktTimer);
-  const duration = Math.round(_wktElapsed / 60);
-  const totalVol = Math.round(_wkt.exercises.reduce((a, ex) =>
-    a + ex.sets.filter(s => s.done).reduce((b, s) => b + ((parseFloat(s.weight)||0)*(parseFloat(s.reps)||0)), 0), 0));
-  const doneSets = _wkt.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
-  if (doneSets === 0) { toast('No sets completed!', 'warn'); return; }
+window.confirmFinishWorkout = function() {
+  const totalSets = _wkt.exercises.reduce(function(a,ex){return a+(ex.sets||[]).filter(function(s){return s.done;}).length;},0);
+  const prs = _wkt.exercises.reduce(function(a,ex){
+    return a + (ex.sets||[]).filter(function(s){return s._isPR;}).length;
+  },0);
+  const totalVol = _wkt.exercises.reduce(function(a,ex){
+    return a + (ex.sets||[]).filter(function(s){return s.done;}).reduce(function(b,s){return b+((s.weight||0)*(s.reps||0));},0);
+  },0);
 
-  const prs = _wkt.prs || [];
-  const prCount = prs.length;
-  const exCount = _wkt.exercises.length;
-  const nextDayName = (SplitEngine.getNextDay()||{}).n || 'Rest up';
-
-  const body =
-    '<div class="finish-stats">' +
-    '<div class="finish-stat"><div class="finish-stat-icon">⏱️</div><div class="finish-stat-v">'+fmtMins(duration)+'</div><div class="finish-stat-l">Duration</div></div>' +
-    '<div class="finish-stat"><div class="finish-stat-icon">🏋️</div><div class="finish-stat-v">'+totalVol+'kg</div><div class="finish-stat-l">Volume</div></div>' +
-    '<div class="finish-stat"><div class="finish-stat-icon">💪</div><div class="finish-stat-v">'+exCount+'</div><div class="finish-stat-l">Exercises</div></div>' +
-    '<div class="finish-stat"><div class="finish-stat-icon">🏆</div><div class="finish-stat-v" style="'+(prCount?'color:#ffd700':'')+'">'+prCount+'</div><div class="finish-stat-l">PRs</div></div>' +
+  modal('Finish Workout?',
+    '<div style="text-align:center;padding:8px 0 20px">' +
+    '<div style="font-size:48px;margin-bottom:12px">💪</div>' +
+    '<div style="font-size:20px;font-weight:800;color:var(--txt);margin-bottom:4px">'+esc(_wkt.name)+'</div>' +
+    '<div style="font-size:13px;color:var(--txt3)">'+fmtMins(Math.round(_wktElapsed/60))+' · '+totalSets+' sets</div>' +
     '</div>' +
-    (prs.length ?
-      '<div class="finish-pr-list">' +
-      prs.map(n => '<div class="finish-pr-item">🏆 <span>'+esc(n)+'</span></div>').join('') +
-      '</div>' : '') +
-    '<div style="font-size:13px;color:var(--txt3);text-align:center;margin-top:10px">'+esc(nextDayName)+' is next 🔥</div>';
-
-  stopRestTimer();
-
-  modal('Workout Complete 🎉', body,
-    '<button onclick="saveWorkout('+duration+','+totalVol+')" style="display:block;width:100%;margin-top:14px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-size:16px;font-weight:800;border:none;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;letter-spacing:-0.3px;box-shadow:0 4px 18px rgba(16,185,129,0.4)">Save Workout 💾</button>' +
-    '<button onclick="keepTraining()" style="display:block;width:100%;margin-top:10px;padding:14px;border-radius:16px;background:transparent;color:var(--txt2);font-size:15px;font-weight:600;border:1px solid var(--border);cursor:pointer;touch-action:manipulation;-webkit-appearance:none">Keep Training</button>');
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">' +
+    '<div style="background:var(--bg3);border-radius:12px;padding:12px;text-align:center">' +
+    '<div style="font-size:20px;font-weight:800;color:var(--c1)">'+totalSets+'</div>' +
+    '<div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px">Sets</div></div>' +
+    '<div style="background:var(--bg3);border-radius:12px;padding:12px;text-align:center">' +
+    '<div style="font-size:20px;font-weight:800;color:var(--txt)">'+(totalVol>1000?round2(totalVol/1000)+'t':totalVol+'kg')+'</div>' +
+    '<div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px">Volume</div></div>' +
+    '<div style="background:var(--bg3);border-radius:12px;padding:12px;text-align:center">' +
+    '<div style="font-size:20px;font-weight:800;color:#ffd60a">'+prs+'</div>' +
+    '<div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px">PRs</div></div>' +
+    '</div>' +
+    '<div class="field-wrap" style="margin-bottom:8px">' +
+    '<label class="field-label">Workout Notes</label>' +
+    '<textarea id="wkt-final-note" class="field" placeholder="Overall feeling, energy, anything to remember..." style="height:80px;resize:none;font-size:14px"></textarea>' +
+    '</div>',
+    '<button class="btn btn-primary" onclick="saveWorkout()" style="margin-top:4px">💾 Save Workout</button>' +
+    '<button class="btn btn-secondary" onclick="closeModal()" style="margin-top:8px">Keep Training</button>'
+  );
 };
 
-window.saveWorkout = function(duration, totalVol) {
-  if (!_wkt) { closeModal(); go('dashboard'); return; }
-  _wkt.duration = duration;
-  _wkt.totalVol = totalVol;
-  S.push('workouts', _wkt);
-  MuscleEngine.status();
+window.saveWorkout = function() {
+  clearInterval(_wktTimer);
+  clearInterval(_restInterval);
+  const finalNote = (document.getElementById('wkt-final-note')||{}).value || '';
+  const totalVol = _wkt.exercises.reduce(function(a,ex){
+    return a + (ex.sets||[]).filter(function(s){return s.done;}).reduce(function(b,s){return b+((s.weight||0)*(s.reps||0));},0);
+  },0);
+  const workout = {
+    id: 'wkt_' + Date.now(),
+    name: _wkt.name,
+    date: today(),
+    duration: Math.round(_wktElapsed / 60),
+    totalVol: totalVol,
+    exercises: _wkt.exercises,
+    notes: finalNote,
+    exerciseNotes: Object.assign({}, _wktNotes),
+    splitDay: S.g('user.splitDay') || 1
+  };
+  S.push('workouts', workout);
   SplitEngine.nextDay();
   AchEngine.check();
-  closeModal();
   _wkt = null;
-  toast('Workout saved! 💪', 'ok', 3000);
+  _wktElapsed = 0;
+  _wktNotes = {};
+  closeModal();
+  const prCount = workout.exercises.reduce(function(a,ex){
+    return a + (ex.sets||[]).filter(function(s){return s._isPR;}).length;
+  },0);
+  toast('Workout saved! 💪' + (prCount>0?' '+prCount+' PRs!':''), 'ok', 4000);
   go('dashboard');
 };
 
-window.keepTraining = function() {
-  closeModal();
+function _startWktTimer() {
   clearInterval(_wktTimer);
-  _wktTimer = setInterval(() => {
+  _wktElapsed = 0;
+  _wktTimer = setInterval(function() {
     _wktElapsed++;
-    const el = document.getElementById('wkt-timer');
+    const el = document.getElementById('wkt-timer-display');
     if (el) el.textContent = fmtTime(_wktElapsed);
   }, 1000);
+}
+
+window.startWorkout = function(templateName) {
+  const splitDay = SplitEngine.getSplitDay();
+  const user = S.g('user') || {};
+  const goal = user.goal || 'hypertrophy';
+  const rec = GUIDANCE.setsReps(goal);
+  const defaultSets = goal === 'strength' ? 5 : 4;
+
+  const exercises = (splitDay.exercises || []).map(function(name) {
+    const ex = ExDB.byName(name);
+    const sets = [];
+    for (var i = 0; i < defaultSets; i++) {
+      const suggest = WeightEngine.suggest(name, user);
+      sets.push({ weight: suggest || 0, reps: parseInt(rec.reps.split('-')[0]) || 8, done: false });
+    }
+    return { name: name, sets: sets, muscles: ex ? ex.muscles : { primary:[], secondary:[] } };
+  });
+
+  _wkt = { name: splitDay.n || 'Workout', exercises: exercises, startTime: Date.now() };
+  _wktNotes = {};
+  _supersetMode = false;
+  _quickMode = false;
+  _startWktTimer();
+  go('active');
+};
+
+window.startQuickWorkout = function() {
+  const splitDay = SplitEngine.getSplitDay();
+  const user = S.g('user') || {};
+  const goal = user.goal || 'hypertrophy';
+  const rec = GUIDANCE.setsReps(goal);
+  const exercises = (splitDay.exercises || []).slice(0, 4).map(function(name) {
+    const sets = [];
+    for (var i = 0; i < 3; i++) {
+      const suggest = WeightEngine.suggest(name, user);
+      sets.push({ weight: suggest || 0, reps: parseInt(rec.reps.split('-')[0]) || 8, done: false });
+    }
+    return { name: name, sets: sets, muscles: {} };
+  });
+  _wkt = { name: '⚡ Quick — ' + (splitDay.n || 'Workout'), exercises: exercises, startTime: Date.now() };
+  _wktNotes = {};
+  _quickMode = true;
+  _startWktTimer();
+  go('active');
 };
 
 /* ── Rest Timer ── */
 window.startRestTimer = function(secs) {
-  stopRestTimer();
+  clearInterval(_restInterval);
   _restRemaining = secs;
   const sheet = document.getElementById('rest-sheet');
-  if (!sheet) return;
-  sheet.classList.add('open');
-  _updateRestUI(_restRemaining, secs);
-  _restInterval = setInterval(() => {
+  if (sheet) sheet.style.transform = 'translateY(0)';
+  const circ = 276.5;
+
+  _restInterval = setInterval(function() {
     _restRemaining--;
-    _updateRestUI(_restRemaining, secs);
+    const cd = document.getElementById('rest-countdown');
+    if (cd) cd.textContent = fmtTime(Math.max(0,_restRemaining));
+    const ring = document.getElementById('rest-ring');
+    if (ring) {
+      const pct = Math.max(0, _restRemaining / secs);
+      ring.style.strokeDashoffset = circ * (1 - pct);
+    }
     if (_restRemaining <= 0) {
-      stopRestTimer();
-      if (navigator.vibrate) navigator.vibrate([100,50,100,50,100]);
-      document.getElementById('rest-sheet')?.classList.remove('open');
+      clearInterval(_restInterval);
+      haptic([100, 50, 100, 50, 200]);
+      const sheet2 = document.getElementById('rest-sheet');
+      if (sheet2) setTimeout(function(){sheet2.style.transform='translateY(100%)';},1200);
     }
   }, 1000);
 };
 
-function _updateRestUI(remaining, total) {
-  const numEl = document.getElementById('rest-num');
-  if (numEl) numEl.textContent = remaining;
-  const arc = document.getElementById('rest-arc');
-  if (arc) {
-    const c = 2*Math.PI*48;
-    const pct = remaining / total;
-    arc.setAttribute('stroke-dashoffset', c * (1-pct));
-  }
-}
+window.skipRest = function() {
+  clearInterval(_restInterval);
+  const sheet = document.getElementById('rest-sheet');
+  if (sheet) sheet.style.transform = 'translateY(100%)';
+};
+
+window.addRestTime = function(secs) {
+  _restRemaining += secs;
+  const cd = document.getElementById('rest-countdown');
+  if (cd) cd.textContent = fmtTime(_restRemaining);
+};
 
 window.stopRestTimer = function() {
   clearInterval(_restInterval);
   _restInterval = null;
 };
 
-window.skipRest = function() {
-  stopRestTimer();
-  document.getElementById('rest-sheet')?.classList.remove('open');
-};
-
-window.adjustRest = function(delta) {
-  _restRemaining = Math.max(5, (_restRemaining||0) + delta);
-  const secs = S.g('user.restSecs') || 120;
-  _updateRestUI(_restRemaining, secs);
+window.toggleExInfo = function(exIdx) {
+  const el = document.getElementById('ex-info-'+exIdx);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 };
 
 /* ── Exercise Picker ── */
@@ -738,9 +816,9 @@ window.addExerciseToWorkout = function(name) {
   const user = S.g('user') || {};
   const suggested = WeightEngine.suggest(name, user);
   const sets = Array.from({length:4}, (_, i) => ({ setNum:i+1, weight:suggested||'', reps:'', done:false }));
-  _wkt.exercises.push({ name, sets, muscles: ExDB.byName(name)?.muscles || {} });
+  _wkt.exercises.push({ name: name, sets: sets, muscles: (ExDB.byName(name) || {}).muscles || {} });
   closeModal();
-  go('active_workout');
+  go('active');
 };
 
 window.svgCheck = function() {
