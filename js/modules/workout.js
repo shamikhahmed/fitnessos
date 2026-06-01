@@ -300,6 +300,275 @@ const ExDB = {
 };
 window.ExDB = ExDB;
 
+/* ── Cardio Protocols ── */
+const CARDIO_PROTOCOLS = {
+  hiit: {
+    name: 'HIIT',
+    full: 'High-Intensity Interval Training',
+    emoji: '⚡',
+    color: '#ff453a',
+    tagline: 'Maximum burn in minimum time',
+    duration: '20–30 min total',
+    difficulty: 3,
+    goal: ['fat_loss','athletic','recomp'],
+    science: 'HIIT triggers EPOC (Excess Post-exercise Oxygen Consumption), elevating metabolism 6–24h post-session. Preserves muscle mass better than LISS when combined with resistance training.',
+    protocols: [
+      {
+        name: 'Classic 20/10 Tabata',
+        rounds: 8,
+        work: 20,
+        rest: 10,
+        sets: 4,
+        totalTime: '16 min',
+        exercises: ['Jump Squats','Push-Ups','Burpees','Mountain Climbers'],
+        intensity: '90–100% max HR',
+        equipment: 'None — bodyweight',
+        notes: 'Developed by Dr. Izumi Tabata. 8 rounds × 20s on / 10s off per exercise. 2 min rest between exercises.'
+      },
+      {
+        name: '30/30 Intervals',
+        rounds: 10,
+        work: 30,
+        rest: 30,
+        sets: 1,
+        totalTime: '20 min',
+        exercises: ['Sprint or Assault Bike','Active rest (walk)'],
+        intensity: '85–95% max HR',
+        equipment: 'Treadmill, Assault Bike, or open space',
+        notes: 'Sprint hard for 30s, active recovery for 30s. 10 rounds. Warm up 5 min, cool down 5 min.'
+      },
+      {
+        name: '1:2 Work-Rest Pyramid',
+        rounds: 6,
+        work: 40,
+        rest: 80,
+        sets: 1,
+        totalTime: '25 min',
+        exercises: ['Rowing Machine','Rest'],
+        intensity: '80–90% max HR',
+        equipment: 'Rower or Bike',
+        notes: 'Pyramid: 20s/40s → 30s/60s → 40s/80s → 40s/80s → 30s/60s → 20s/40s. Great for beginners.'
+      }
+    ],
+    warmup: ['5 min easy jog or bike','Dynamic leg swings × 15','Arm circles × 10','High knees × 20'],
+    cooldown: ['5 min walk','Quad stretch 30s each','Hip flexor stretch 30s each','Deep breathing 2 min'],
+    warnings: ['Not suitable on consecutive days','Skip if readiness < 50','Stop if chest pain occurs','Beginners: start with 4 rounds, not 8']
+  },
+
+  liss: {
+    name: 'LISS',
+    full: 'Low-Intensity Steady-State',
+    emoji: '🚶',
+    color: '#30d158',
+    tagline: 'Fat burning without muscle loss',
+    duration: '30–60 min',
+    difficulty: 1,
+    goal: ['fat_loss','maintenance','recomp'],
+    science: 'LISS primarily burns fat as fuel (65–75% fat oxidation at low intensity). Minimal cortisol response means muscle mass is preserved. Ideal on rest days or after weight training.',
+    protocols: [
+      {
+        name: 'Incline Treadmill Walk',
+        work: 45,
+        totalTime: '45 min',
+        exercises: ['Treadmill walk — 5–6 km/h, 10–15% incline'],
+        intensity: '60–70% max HR',
+        equipment: 'Treadmill',
+        notes: 'The "Norwegian Method." Do NOT hold handrails — forces the glutes to work. Burns ~400–500 kcal/session.'
+      },
+      {
+        name: 'Outdoor Fasted Walk',
+        work: 45,
+        totalTime: '45 min',
+        exercises: ['Brisk outdoor walk — 5–6 km/h','Optional: weighted vest 5–10kg'],
+        intensity: '55–65% max HR',
+        equipment: 'None / weighted vest optional',
+        notes: 'Best done fasted in the morning. Natural light also regulates cortisol. Low-impact, joint-friendly.'
+      },
+      {
+        name: 'Steady Bike Ride',
+        work: 40,
+        totalTime: '40 min',
+        exercises: ['Stationary bike — resistance 8–12','Maintain 70–80 RPM'],
+        intensity: '60–70% max HR',
+        equipment: 'Stationary Bike or Outdoor Bike',
+        notes: 'Zero joint impact. Excellent active recovery. Pair with a podcast or audiobook.'
+      }
+    ],
+    warmup: ['2 min easy pace to start','Gradual incline increase over 3 min'],
+    cooldown: ['2 min easy pace','Calf stretch 30s each','Hip flexor stretch 30s each'],
+    warnings: ['More than 60 min may increase cortisol','Pair with protein intake post-session','Can be done 5–6 days/week']
+  },
+
+  miss: {
+    name: 'MISS',
+    full: 'Moderate-Intensity Steady-State',
+    emoji: '🏃',
+    color: '#ff9f0a',
+    tagline: 'The middle ground — aerobic base building',
+    duration: '20–40 min',
+    difficulty: 2,
+    goal: ['athletic','maintenance','hypertrophy'],
+    science: 'MISS targets aerobic capacity and VO2 max. Operates at 70–80% max HR — above fat-burning zone but sustainable. Builds cardiovascular base that improves lifting performance.',
+    protocols: [
+      {
+        name: 'Tempo Run',
+        work: 25,
+        totalTime: '25 min',
+        exercises: ['Run at 75–80% max HR','Conversational pace — you can speak in sentences'],
+        intensity: '70–80% max HR',
+        equipment: 'Treadmill or outdoor',
+        notes: 'Controlled discomfort. If you cannot speak in sentences, slow down. 5 min warm-up jog, 20 min tempo, 5 min cool-down.'
+      },
+      {
+        name: 'Rowing Machine MISS',
+        work: 30,
+        totalTime: '30 min',
+        exercises: ['Row at 2:10–2:20 /500m pace','Damper setting 4–6'],
+        intensity: '70–80% max HR',
+        equipment: 'Rowing Machine',
+        notes: 'Full body cardio. Maintain 22–24 strokes per minute. Check damper — too high increases injury risk.'
+      },
+      {
+        name: 'Stair Climber MISS',
+        work: 25,
+        totalTime: '25 min',
+        exercises: ['Stair climber — 60–70 steps/min','Arms free, no rail holding'],
+        intensity: '70–80% max HR',
+        equipment: 'Stair Climber',
+        notes: 'Exceptional glute and cardiovascular stimulus. Step fully — no toe-stepping. Burns ~350 kcal/25 min.'
+      }
+    ],
+    warmup: ['5 min easy jog or walk','Gradual pace increase to working pace'],
+    cooldown: ['5 min easy pace','Full body stretch 5 min'],
+    warnings: ['Best 3–4 days/week','Allow 1 day between MISS sessions']
+  },
+
+  sit: {
+    name: 'SIT',
+    full: 'Sprint Interval Training',
+    emoji: '🔥',
+    color: '#ff453a',
+    tagline: 'All-out sprints. Maximum adaptation.',
+    duration: '15–20 min total (short but brutal)',
+    difficulty: 3,
+    goal: ['athletic','fat_loss'],
+    science: 'SIT uses 4–6 all-out supramaximal sprints (>100% VO2 max). Superior to HIIT for improving insulin sensitivity, VO2 max, and mitochondrial density. Sessions are short but extremely taxing on CNS.',
+    protocols: [
+      {
+        name: '6×30s Wingate Protocol',
+        rounds: 6,
+        work: 30,
+        rest: 270,
+        totalTime: '30 min incl warm-up',
+        exercises: ['All-out sprint — 30s','Complete rest — 4.5 min'],
+        intensity: '100% max effort',
+        equipment: 'Assault Bike, Rowing Machine, or Sprint track',
+        notes: 'The original Wingate sprint test protocol. 6 rounds of absolute maximum effort. Between rounds: catch your breath, do not move around.'
+      },
+      {
+        name: '4×20s Hill Sprints',
+        rounds: 4,
+        work: 20,
+        rest: 180,
+        totalTime: '20 min incl warm-up',
+        exercises: ['Hill sprint — 20s absolute max','Walk down — 3 min recovery'],
+        intensity: '100% max effort',
+        equipment: 'Outdoor hill or treadmill at 8–10% incline',
+        notes: 'Hill reduces impact force vs flat sprints. Drive knees high, lean into hill. Excellent for glute and hamstring development alongside cardio.'
+      }
+    ],
+    warmup: ['10 min progressive warm-up (crucial)','3–4 strides at 70–80% before first sprint','Dynamic stretches'],
+    cooldown: ['10 min easy walk','Full lower body stretch','Nutrition: protein + carbs within 30 min'],
+    warnings: ['Maximum 2×/week','Never on consecutive days','Requires 48h+ recovery','NOT for beginners — build aerobic base first','Stop if any sharp pain']
+  },
+
+  fartlek: {
+    name: 'Fartlek',
+    full: 'Fartlek Training (Speed Play)',
+    emoji: '🎲',
+    color: 'var(--c1)',
+    tagline: 'Unstructured speed play — listen to your body',
+    duration: '20–45 min',
+    difficulty: 2,
+    goal: ['athletic','maintenance','hypertrophy'],
+    science: 'Swedish for "speed play." Mixes intensities freely based on feel. Develops both aerobic and anaerobic systems simultaneously. The unstructured nature reduces mental fatigue and increases enjoyment — important for long-term adherence.',
+    protocols: [
+      {
+        name: 'Classic Street Fartlek',
+        work: 30,
+        totalTime: '30 min',
+        exercises: ['Easy jog baseline pace','Sprint to next lamppost/corner','Recovery jog to catch breath','Repeat at will'],
+        intensity: 'Variable 60–100% max HR',
+        equipment: 'Outdoor space or treadmill',
+        notes: 'No structure — that is the point. Sprint when you feel good. Recover when you need. Use landmarks as sprint targets. Total time 30 min.'
+      },
+      {
+        name: 'Music-Driven Fartlek',
+        work: 25,
+        totalTime: '25 min',
+        exercises: ['Run easy during verses','Sprint during chorus','Recover during bridges'],
+        intensity: 'Music-driven effort',
+        equipment: 'Treadmill or outdoor. Good playlist essential.',
+        notes: 'Sprint during every chorus, recover during verse. Makes cardio engaging. High-energy playlist recommended.'
+      }
+    ],
+    warmup: ['5 min easy jog','Light dynamic warm-up'],
+    cooldown: ['5 min easy jog','5 min stretching'],
+    warnings: ['Great for beginners — intensity is self-regulated','Can replace one HIIT session per week']
+  },
+
+  circuit: {
+    name: 'Circuit Training',
+    full: 'Circuit Training',
+    emoji: '🔄',
+    color: '#bf5af2',
+    tagline: 'Resistance + cardio combined — maximum efficiency',
+    duration: '30–45 min',
+    difficulty: 2,
+    goal: ['fat_loss','recomp','maintenance','athletic'],
+    science: 'Circuit training keeps heart rate elevated (65–80% max HR) throughout resistance exercises. Combines metabolic conditioning with strength stimulus. Produces significant EPOC while building functional strength.',
+    protocols: [
+      {
+        name: 'Push-Pull-Legs Circuit',
+        work: 40,
+        rest: 15,
+        rounds: 3,
+        totalTime: '35 min',
+        exercises: ['Push-Ups × 15','Dumbbell Row × 12 each','Goblet Squat × 15','Mountain Climbers × 20','Dumbbell Shoulder Press × 12','Hip Thrust BW × 20','Plank 30s'],
+        intensity: '70–80% max HR',
+        equipment: 'Dumbbells + bodyweight',
+        notes: 'Move directly between exercises with no rest. 15s rest between rounds. 3 rounds total. Adjust DB weight to allow completion without breaking form.'
+      },
+      {
+        name: 'Barbell Complex',
+        work: 45,
+        rest: 90,
+        rounds: 5,
+        totalTime: '30 min',
+        exercises: ['Barbell Deadlift × 6','Barbell Row × 6','Barbell Hang Clean × 6','Barbell Front Squat × 6','Barbell Push Press × 6'],
+        intensity: 'Moderate load — never set bar down',
+        equipment: 'Barbell',
+        notes: 'Never set the bar down during a round. Use a weight you can do all 5 movements with (typically 30–40% of your weakest lift). 90s rest between rounds.'
+      },
+      {
+        name: 'AMRAP Circuit',
+        work: 1200,
+        rest: 0,
+        rounds: 1,
+        totalTime: '20 min AMRAP',
+        exercises: ['10 × Push-Ups','15 × Air Squats','10 × DB Rows each side','20 × Jump Rope (or jumping jacks)','10 × Dips or Tricep Push-Ups'],
+        intensity: 'Self-paced, continuous movement',
+        equipment: 'Minimal — DB, jump rope optional',
+        notes: 'As Many Rounds As Possible in 20 minutes. Log your rounds. Beat your score next session. Log rest only when absolutely needed.'
+      }
+    ],
+    warmup: ['5 min light cardio','Joint circles head to toe','Light warm-up set of each movement'],
+    cooldown: ['5 min easy movement','Full body stretch 5 min','Protein shake within 30 min'],
+    warnings: ['Not ideal day before heavy leg day','Reduce weights vs normal training','Keep log of rounds/reps for progression']
+  }
+};
+window.CARDIO_PROTOCOLS = CARDIO_PROTOCOLS;
+
 /* ── Active Workout State ── */
 let _wkt = null;
 let _wktTimer = null;
@@ -376,8 +645,59 @@ reg('workout', function() {
     '<button class="btn btn-primary" onclick="startWorkout()">Start Workout 💪</button>' +
     '<button class="btn btn-secondary" style="margin-top:10px" onclick="startQuickWorkout()">⚡ Quick Workout (20 min)</button>' +
     '<button class="btn btn-secondary" style="margin-top:10px" onclick="showBrowseExercises()">🔍 Browse All Exercises</button>' +
+    '<button class="btn" style="margin-top:10px;background:rgba(255,69,58,0.1);border:1px solid rgba(255,69,58,0.2);color:#ff453a;font-weight:700" onclick="go(\'cardio\')">❤️ Cardio Protocols</button>' +
     '<button class="btn" style="margin-top:10px;background:rgba(var(--c1-rgb),0.1);border:1px solid rgba(var(--c1-rgb),0.2);color:var(--c1)" onclick="showAddCustomExercise()">+ Add Custom Exercise</button>' +
     '</div>' +
+    '<div style="height:20px"></div>';
+});
+
+/* ── CARDIO HOME SCREEN ── */
+reg('cardio', function() {
+  const user = S.g('user') || {};
+  const goal = user.goal || 'hypertrophy';
+  const score = ReadinessEngine.score();
+
+  function isRecommended(p) {
+    if (score < 50 && p.difficulty >= 3) return false;
+    return p.goal.includes(goal) || p.difficulty === 1;
+  }
+
+  const protocols = Object.values(CARDIO_PROTOCOLS);
+  const keys = Object.keys(CARDIO_PROTOCOLS);
+
+  const cards = protocols.map(function(p, idx) {
+    const key = keys[idx];
+    const rec = isRecommended(p);
+    const diffLabel = p.difficulty >= 3 ? 'Advanced' : p.difficulty === 2 ? 'Intermediate' : 'Beginner';
+    const diffColor = p.difficulty >= 3 ? '#ff453a' : p.difficulty === 2 ? '#ff9f0a' : '#30d158';
+    return '<div onclick="showCardioProtocol(\''+key+'\')" ' +
+      'style="background:var(--bg3);border:1.5px solid '+(rec?p.color:'var(--border)')+';border-radius:18px;padding:16px;margin-bottom:12px;cursor:pointer;touch-action:manipulation;position:relative">' +
+      (rec ? '<div style="position:absolute;top:14px;right:14px;background:rgba(var(--c1-rgb),0.15);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--c1)">RECOMMENDED</div>' : '') +
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">' +
+      '<div style="font-size:36px;line-height:1">'+p.emoji+'</div>' +
+      '<div>' +
+      '<div style="font-size:18px;font-weight:800;color:var(--txt)">'+esc(p.name)+'</div>' +
+      '<div style="font-size:12px;color:var(--txt3);margin-top:2px">'+esc(p.full)+'</div>' +
+      '</div></div>' +
+      '<div style="font-size:13px;color:var(--txt2);line-height:1.5;margin-bottom:10px">'+esc(p.tagline)+'</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      '<span style="font-size:11px;font-weight:600;color:'+diffColor+';background:rgba(0,0,0,0.2);padding:3px 10px;border-radius:20px">'+diffLabel+'</span>' +
+      '<span style="font-size:11px;color:var(--txt3);background:rgba(0,0,0,0.15);padding:3px 10px;border-radius:20px">⏱ '+esc(p.duration)+'</span>' +
+      '<span style="font-size:11px;color:var(--txt3);background:rgba(0,0,0,0.15);padding:3px 10px;border-radius:20px">'+p.protocols.length+' protocols</span>' +
+      '</div></div>';
+  }).join('');
+
+  return '<div class="topbar">' +
+    '<button class="topbar-icon press" onclick="go(\'workout\')" style="margin-right:8px">←</button>' +
+    '<div><div class="topbar-title">Cardio</div>' +
+    '<div class="topbar-date">Choose your protocol</div></div></div>' +
+
+    '<div style="padding:12px 16px;background:rgba(var(--c1-rgb),0.06);border-bottom:1px solid var(--border)">' +
+    '<div style="font-size:13px;color:var(--txt2)">Readiness score: <strong style="color:var(--c1)">'+score+'</strong> · ' +
+    'Goal: <strong style="color:var(--c1)">'+esc(goal.replace('_',' '))+'</strong></div>' +
+    '</div>' +
+
+    '<div style="padding:14px 16px">' + cards + '</div>' +
     '<div style="height:20px"></div>';
 });
 
@@ -1076,3 +1396,138 @@ function showBrowseExercises(filterGrp, filterQuery) {
   if (nav) nav.style.display = 'flex';
 }
 window.showBrowseExercises = showBrowseExercises;
+
+/* ── Cardio stat tile helper ── */
+function _cStat(icon, label, val) {
+  return '<div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:8px;text-align:center">' +
+    '<div style="font-size:14px">'+icon+'</div>' +
+    '<div style="font-size:13px;font-weight:700;color:var(--txt)">'+val+'</div>' +
+    '<div style="font-size:10px;color:var(--txt3);margin-top:1px;text-transform:uppercase;letter-spacing:0.06em">'+label+'</div>' +
+    '</div>';
+}
+
+/* ── Cardio Protocol Detail ── */
+window.showCardioProtocol = function(key) {
+  const p = CARDIO_PROTOCOLS[key];
+  if (!p) return;
+
+  const diffLabel = p.difficulty >= 3 ? 'Advanced' : p.difficulty === 2 ? 'Intermediate' : 'Beginner';
+  const diffColor = p.difficulty >= 3 ? '#ff453a' : p.difficulty === 2 ? '#ff9f0a' : '#30d158';
+
+  const protocolCards = p.protocols.map(function(pr, i) {
+    return '<div style="background:var(--bg4);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--border)">' +
+      '<div style="font-size:15px;font-weight:800;color:var(--txt);margin-bottom:8px">'+esc(pr.name)+'</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">' +
+      (pr.work && pr.rest ? _cStat('⏱','Intervals',fmtTime(pr.work)+' / '+fmtTime(pr.rest)) : '') +
+      (pr.rounds ? _cStat('🔁','Rounds',pr.rounds+'×') : '') +
+      _cStat('📍','Total',esc(pr.totalTime)) +
+      _cStat('💓','Intensity',esc(pr.intensity)) +
+      '</div>' +
+      '<div style="margin-bottom:8px">' +
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:4px">Exercises</div>' +
+      pr.exercises.map(function(e){return '<div style="font-size:13px;color:var(--txt2);padding:3px 0;border-bottom:1px solid var(--border)">• '+esc(e)+'</div>';}).join('') +
+      '</div>' +
+      '<div style="margin-bottom:8px">' +
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:4px">Equipment</div>' +
+      '<div style="font-size:13px;color:var(--txt2)">'+esc(pr.equipment)+'</div>' +
+      '</div>' +
+      '<div style="background:rgba(var(--c1-rgb),0.06);border-radius:10px;padding:10px">' +
+      '<div style="font-size:12px;color:var(--txt2);line-height:1.6">💡 '+esc(pr.notes)+'</div>' +
+      '</div>' +
+      '<button onclick="startCardioSession(\''+key+'\','+i+')" style="width:100%;margin-top:12px;padding:12px;border-radius:12px;background:'+p.color+';color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;touch-action:manipulation">▶ Start This Protocol</button>' +
+      '</div>';
+  }).join('');
+
+  const v = document.getElementById('view');
+  if (!v) return;
+  v.scrollTop = 0;
+  const div = document.createElement('div');
+  div.className = 'screen';
+  div.innerHTML =
+    '<div class="topbar">' +
+    '<button class="topbar-icon press" onclick="go(\'cardio\')" style="margin-right:8px">←</button>' +
+    '<div><div class="topbar-title">'+esc(p.name)+'</div>' +
+    '<div class="topbar-date">'+esc(p.full)+'</div></div></div>' +
+
+    '<div style="padding:16px;background:linear-gradient(180deg,rgba(0,0,0,0.3),transparent)">' +
+    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">' +
+    '<div style="font-size:48px">'+p.emoji+'</div>' +
+    '<div>' +
+    '<div style="font-size:22px;font-weight:900;color:'+p.color+'">'+esc(p.name)+'</div>' +
+    '<div style="font-size:13px;color:var(--txt3)">'+esc(p.tagline)+'</div>' +
+    '<div style="display:flex;gap:8px;margin-top:6px">' +
+    '<span style="font-size:11px;font-weight:600;color:'+diffColor+';background:rgba(0,0,0,0.3);padding:3px 10px;border-radius:20px">'+diffLabel+'</span>' +
+    '<span style="font-size:11px;color:var(--txt3);background:rgba(0,0,0,0.2);padding:3px 10px;border-radius:20px">'+esc(p.duration)+'</span>' +
+    '</div></div></div>' +
+
+    '<div style="font-size:13px;color:var(--txt2);line-height:1.65;background:rgba(0,0,0,0.2);border-radius:12px;padding:12px;margin-bottom:14px">' +
+    '🔬 '+esc(p.science)+'</div>' +
+
+    sh('Protocols') +
+    '<div style="padding:0 16px">'+protocolCards+'</div>' +
+
+    sh('Warm-Up') +
+    '<div style="padding:0 16px 12px">' +
+    p.warmup.map(function(w){return '<div style="font-size:13px;color:var(--txt2);padding:6px 0;border-bottom:1px solid var(--border)">🔥 '+esc(w)+'</div>';}).join('') +
+    '</div>' +
+
+    sh('Cool-Down') +
+    '<div style="padding:0 16px 12px">' +
+    p.cooldown.map(function(c){return '<div style="font-size:13px;color:var(--txt2);padding:6px 0;border-bottom:1px solid var(--border)">❄️ '+esc(c)+'</div>';}).join('') +
+    '</div>' +
+
+    sh('Warnings') +
+    '<div style="padding:0 16px 14px">' +
+    p.warnings.map(function(w){return '<div style="font-size:13px;color:#ff9f0a;padding:6px 0;border-bottom:1px solid var(--border)">⚠️ '+esc(w)+'</div>';}).join('') +
+    '</div>' +
+
+    '</div>' +
+    '<div style="height:20px"></div>';
+
+  v.innerHTML = '';
+  v.appendChild(div);
+  const nav = document.getElementById('nav');
+  if (nav) nav.style.display = 'flex';
+};
+
+/* ── Cardio Session Starter ── */
+window.startCardioSession = function(key, protocolIdx) {
+  const p = CARDIO_PROTOCOLS[key];
+  if (!p) return;
+  const pr = p.protocols[protocolIdx];
+  if (!pr) return;
+
+  const session = {
+    id: 'cardio_' + Date.now(),
+    type: key,
+    name: p.name + ' — ' + pr.name,
+    date: today(),
+    duration: pr.work || 30,
+    protocol: pr.name,
+    intensity: pr.intensity
+  };
+  S.push('cardio', session);
+
+  const workSecs = pr.work || 30;
+  const restSecs = pr.rest || 60;
+  const rounds = pr.rounds || 1;
+
+  modal('🏃 ' + esc(pr.name),
+    '<div style="text-align:center;padding:16px 0">' +
+    '<div style="font-size:48px;margin-bottom:10px">'+p.emoji+'</div>' +
+    '<div style="font-size:14px;color:var(--txt3);margin-bottom:16px">Session logged. Use timer below.</div>' +
+    '<div style="background:var(--bg3);border-radius:14px;padding:16px;margin-bottom:12px">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">' +
+    _cStat('⏱','Work',fmtTime(workSecs)) +
+    _cStat('😮‍💨','Rest',fmtTime(restSecs)) +
+    _cStat('🔁','Rounds',rounds+'×') +
+    '</div></div>' +
+    '<div style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:14px">'+esc(pr.notes)+'</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">' +
+    pr.exercises.map(function(e){return '<span style="font-size:12px;background:rgba(var(--c1-rgb),0.1);color:var(--c1);border-radius:20px;padding:4px 12px;font-weight:600">'+esc(e)+'</span>';}).join('') +
+    '</div></div>',
+    '<button class="btn btn-primary" onclick="closeModal();go(\'cardio\')">Done ✓</button>' +
+    '<button class="btn btn-secondary" onclick="closeModal()" style="margin-top:8px">Keep Viewing</button>'
+  );
+  toast('💪 '+p.name+' session logged!', 'ok', 4000);
+};
