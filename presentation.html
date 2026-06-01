@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitnessOS Pro — Presentation</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #12121a;
+    --bg3: #1a1a2e;
+    --cyan: #00d5ff;
+    --purple: #6b5fff;
+    --pink: #ff4d9e;
+    --green: #00ffaa;
+    --text: #e8e8f0;
+    --muted: #888899;
+    --border: rgba(255,255,255,0.08);
+    --glass: rgba(255,255,255,0.04);
+    --glow-c: 0 0 40px rgba(0,213,255,0.25);
+    --glow-p: 0 0 40px rgba(107,95,255,0.25);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── Canvas orbs ── */
+  #orb-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Progress bar ── */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px; z-index: 100;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 12px var(--cyan);
+  }
+
+  /* ── Slide container ── */
+  #deck {
+    position: relative; z-index: 1;
+    width: 100%; height: 100vh;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px 60px 80px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateY(16px);
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .slide.exit {
+    opacity: 0;
+    transform: translateY(-16px);
+    pointer-events: none;
+  }
+
+  /* ── Typography ── */
+  .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--cyan);
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 800; line-height: 1.1;
+    text-align: center;
+    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+  }
+
+  .subtitle {
+    font-size: clamp(1rem, 2vw, 1.35rem);
+    color: var(--muted); text-align: center;
+    max-width: 680px; line-height: 1.6;
+  }
+
+  /* ── Pill / badge ── */
+  .pill {
+    display: inline-block; padding: 4px 14px;
+    border-radius: 100px; font-size: 12px; font-weight: 600;
+    background: rgba(0,213,255,0.12); color: var(--cyan);
+    border: 1px solid rgba(0,213,255,0.3);
+  }
+  .pill-purple { background: rgba(107,95,255,0.12); color: #a99fff; border-color: rgba(107,95,255,0.3); }
+  .pill-green  { background: rgba(0,255,170,0.10); color: var(--green); border-color: rgba(0,255,170,0.3); }
+  .pill-pink   { background: rgba(255,77,158,0.10); color: var(--pink); border-color: rgba(255,77,158,0.3); }
+
+  /* ── Cards / glass ── */
+  .glass-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 24px 28px;
+  }
+
+  /* ── Bullet list ── */
+  .bullets {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 14px;
+    max-width: 720px; width: 100%;
+    margin-top: 32px;
+  }
+
+  .bullets li {
+    display: flex; align-items: flex-start; gap: 14px;
+    font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+    line-height: 1.5; color: var(--text);
+  }
+
+  .bullet-icon {
+    flex-shrink: 0; width: 28px; height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #000;
+    margin-top: 1px;
+  }
+
+  .hi-cyan  { color: var(--cyan); font-weight: 700; }
+  .hi-purple{ color: #a99fff;     font-weight: 700; }
+  .hi-green { color: var(--green);font-weight: 700; }
+  .hi-pink  { color: var(--pink); font-weight: 700; }
+
+  /* ── Stat row ── */
+  .stat-row {
+    display: flex; gap: 20px; flex-wrap: wrap;
+    justify-content: center; margin-top: 32px;
+  }
+
+  .stat-card {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 16px; padding: 22px 30px;
+    text-align: center; min-width: 130px;
+    backdrop-filter: blur(20px);
+  }
+
+  .stat-num {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 900; line-height: 1;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); margin-top: 6px;
+  }
+
+  /* ── Grid ── */
+  .grid-2 {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; width: 100%; max-width: 780px;
+    margin-top: 28px;
+  }
+
+  .grid-3 {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 14px; width: 100%; max-width: 860px;
+    margin-top: 28px;
+  }
+
+  .mini-card {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px;
+    backdrop-filter: blur(20px);
+  }
+
+  .mini-card-title {
+    font-size: 13px; font-weight: 700; color: var(--cyan);
+    margin-bottom: 6px;
+  }
+
+  .mini-card-body {
+    font-size: 12px; color: var(--muted); line-height: 1.5;
+  }
+
+  /* ── File tree ── */
+  .file-tree {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px 28px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px; line-height: 2;
+    max-width: 680px; width: 100%; margin-top: 28px;
+  }
+
+  .tree-line { color: var(--muted); }
+  .tree-dir  { color: var(--cyan); font-weight: 700; }
+  .tree-file { color: #c8c8e0; }
+  .tree-comment { color: #555566; font-size: 11px; }
+
+  /* ── Coach personas ── */
+  .persona-row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    justify-content: center; margin-top: 28px;
+  }
+
+  .persona {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 20px;
+    text-align: center; min-width: 110px;
+    backdrop-filter: blur(20px);
+  }
+
+  .persona-emoji { font-size: 28px; display: block; margin-bottom: 6px; }
+  .persona-name  { font-size: 13px; font-weight: 700; color: var(--text); }
+  .persona-role  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Readiness gauge ── */
+  .gauge-wrap {
+    display: flex; align-items: center; gap: 40px;
+    margin-top: 28px; flex-wrap: wrap; justify-content: center;
+  }
+
+  /* ── Progress bar inline ── */
+  .bar-row {
+    display: flex; flex-direction: column; gap: 10px;
+    max-width: 620px; width: 100%; margin-top: 28px;
+  }
+
+  .bar-item { display: flex; align-items: center; gap: 12px; }
+  .bar-label { font-size: 12px; color: var(--muted); width: 90px; text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 8px; border-radius: 100px; background: rgba(255,255,255,0.08); overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 100px; background: linear-gradient(90deg,var(--cyan),var(--purple)); }
+  .bar-val   { font-size: 12px; font-weight: 700; color: var(--cyan); width: 36px; }
+
+  /* ── Body map mini ── */
+  .body-grid {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 10px; max-width: 760px; width: 100%;
+    margin-top: 24px;
+  }
+
+  .muscle-chip {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 12px;
+    font-size: 11px; font-weight: 600;
+    text-align: center; color: var(--muted);
+  }
+
+  .muscle-chip.fresh  { border-color: rgba(0,255,170,0.4); color: var(--green); }
+  .muscle-chip.warn   { border-color: rgba(255,193,7,0.4);  color: #ffd54f; }
+  .muscle-chip.sore   { border-color: rgba(255,77,158,0.4); color: var(--pink); }
+
+  /* ── Nav arrows ── */
+  .nav-arrow {
+    position: fixed; bottom: 32px; z-index: 50;
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--glass); backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; color: var(--text);
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .nav-arrow:hover { border-color: var(--cyan); transform: scale(1.1); }
+  #nav-prev { left: 32px; }
+  #nav-next { right: 32px; }
+  #nav-prev.hidden, #nav-next.hidden { opacity: 0.2; pointer-events: none; }
+
+  /* ── Slide number ── */
+  #slide-num {
+    position: fixed; bottom: 38px; left: 50%; transform: translateX(-50%);
+    font-size: 12px; color: var(--muted); letter-spacing: 2px;
+    z-index: 50;
+  }
+
+  /* ── Divider line ── */
+  .divider {
+    width: 60px; height: 2px; margin: 20px auto;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    border-radius: 100px;
+  }
+
+  /* ── Two-col layout ── */
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 24px; max-width: 840px; width: 100%;
+    margin-top: 28px;
+  }
+
+  /* ── Tag cloud ── */
+  .tag-cloud {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; max-width: 700px;
+    margin-top: 28px;
+  }
+
+  .tag {
+    padding: 8px 16px; border-radius: 100px;
+    font-size: 13px; font-weight: 600;
+    background: var(--glass); border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+
+  /* ── Closing slide ── */
+  .closing-url {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    color: var(--cyan); font-weight: 700;
+    text-decoration: none;
+    background: rgba(0,213,255,0.08);
+    border: 1px solid rgba(0,213,255,0.3);
+    padding: 14px 28px; border-radius: 12px;
+    margin-top: 12px; display: inline-block;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    justify-content: center; margin-top: 32px;
+  }
+
+  .big-badge {
+    padding: 14px 24px; border-radius: 14px;
+    font-size: 13px; font-weight: 700;
+    text-align: center; line-height: 1.4;
+  }
+
+  /* ── SVG ring (rest timer preview) ── */
+  .ring-demo {
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 20px;
+  }
+
+  /* ── Icon strip ── */
+  .icon-strip {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    justify-content: center; margin-top: 28px;
+  }
+
+  .icon-block {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    min-width: 80px;
+  }
+  .icon-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .icon-text { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; }
+
+  /* Slide-specific accent lines */
+  .accent-line {
+    width: 100%; max-width: 700px;
+    height: 1px; background: var(--border);
+    margin: 20px 0;
+  }
+
+  @media (max-width: 640px) {
+    .slide { padding: 60px 20px 60px; }
+    .grid-2, .grid-3, .two-col { grid-template-columns: 1fr; }
+    .body-grid { grid-template-columns: repeat(2,1fr); }
+    .persona-row { gap: 8px; }
+    .stat-row { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="orb-canvas"></canvas>
+<div id="progress-bar" style="width:5%"></div>
+
+<div id="deck">
+
+  <!-- ══════════════════════════════════════════ SLIDE 1 ══ -->
+  <div class="slide active" data-slide="1">
+    <div class="eyebrow">Presentation 2026</div>
+    <div class="title" style="font-size:clamp(3rem,6vw,5rem);">FitnessOS <span class="hi-cyan">Pro</span></div>
+    <div class="subtitle" style="font-size:clamp(1.1rem,2.2vw,1.5rem); color:var(--text); margin-bottom:10px;">
+      Your AI-Powered Fitness Operating System
+    </div>
+    <div class="divider"></div>
+    <div class="subtitle">Built by <span class="hi-cyan">Shamikh Ahmed</span> — Karachi, PK</div>
+    <div class="stat-row" style="margin-top:40px;">
+      <div class="stat-card">
+        <div class="stat-num">14</div>
+        <div class="stat-label">Sessions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">300<span style="font-size:1.4rem">+</span></div>
+        <div class="stat-label">Exercises</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Dependencies</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Offline</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 2 ══ -->
+  <div class="slide" data-slide="2">
+    <div class="eyebrow">The Problem</div>
+    <div class="title">Fitness Apps Are <span class="hi-pink">Broken</span></div>
+    <ul class="bullets">
+      <li>
+        <div class="bullet-icon">✗</div>
+        <div><span class="hi-pink">Generic plans</span> that ignore your injury history, readiness, and actual recovery state</div>
+      </li>
+      <li>
+        <div class="bullet-icon">✗</div>
+        <div><span class="hi-pink">No real AI</span> — "smart" suggestions are just static templates with a chatbot façade</div>
+      </li>
+      <li>
+        <div class="bullet-icon">✗</div>
+        <div><span class="hi-pink">Cloud dependency</span> — your data lives on someone else's server, behind a paywall</div>
+      </li>
+      <li>
+        <div class="bullet-icon">✗</div>
+        <div><span class="hi-pink">No offline support</span> — useless in a gym with bad reception or on airplane mode</div>
+      </li>
+      <li>
+        <div class="bullet-icon">✗</div>
+        <div><span class="hi-pink">Zero ownership</span> — export is buried, data formats are proprietary, portability is a myth</div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 3 ══ -->
+  <div class="slide" data-slide="3">
+    <div class="eyebrow">The Solution</div>
+    <div class="title">FitnessOS <span class="hi-cyan">Pro</span></div>
+    <ul class="bullets">
+      <li>
+        <div class="bullet-icon" style="background:linear-gradient(135deg,var(--cyan),var(--green));">✓</div>
+        <div><span class="hi-cyan">Offline-first PWA</span> — works with zero connectivity, installs like a native app</div>
+      </li>
+      <li>
+        <div class="bullet-icon" style="background:linear-gradient(135deg,var(--cyan),var(--green));">✓</div>
+        <div><span class="hi-green">AI Coach</span> with 5 personalities, 3 tones, goal-aware, and context-sensitive advice</div>
+      </li>
+      <li>
+        <div class="bullet-icon" style="background:linear-gradient(135deg,var(--cyan),var(--green));">✓</div>
+        <div><span class="hi-cyan">300+ exercises</span> with coaching cues, joint stress maps, and difficulty ratings</div>
+      </li>
+      <li>
+        <div class="bullet-icon" style="background:linear-gradient(135deg,var(--cyan),var(--green));">✓</div>
+        <div><span class="hi-green">Zero cloud dependency</span> — all data stays in your browser's localStorage, forever</div>
+      </li>
+      <li>
+        <div class="bullet-icon" style="background:linear-gradient(135deg,var(--cyan),var(--green));">✓</div>
+        <div><span class="hi-cyan">JSON export/import</span> — full data portability, one tap, human-readable format</div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 4 ══ -->
+  <div class="slide" data-slide="4">
+    <div class="eyebrow">Tech Stack</div>
+    <div class="title">Zero Dependencies. <span class="hi-cyan">Zero Compromises.</span></div>
+    <div class="grid-3" style="max-width:860px;">
+      <div class="mini-card">
+        <div class="mini-card-title">HTML / CSS / JS</div>
+        <div class="mini-card-body">Pure vanilla — no React, no build step, no transpiler. Ships as-is.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">localStorage</div>
+        <div class="mini-card-body">All state via the S object — typed getters, profile-scoped keys, zero IndexedDB.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Service Worker</div>
+        <div class="mini-card-body">fos-v6 cache strategy — precaches every asset for full offline use.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Hand-rolled SVG</div>
+        <div class="mini-card-body">Strength trends, weight charts, rest-timer ring — no Chart.js, no D3.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Canvas Orbs</div>
+        <div class="mini-card-body">Animated background rendered on canvas — zero CSS animation overhead.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">PWA Manifest</div>
+        <div class="mini-card-body">Installable on iOS & Android, standalone display, custom icons.</div>
+      </div>
+    </div>
+    <div class="tag-cloud" style="margin-top:24px;">
+      <span class="pill">No npm</span>
+      <span class="pill">No webpack</span>
+      <span class="pill">No TypeScript</span>
+      <span class="pill pill-purple">node --check only</span>
+      <span class="pill pill-green">Ships in 1 HTML + 3 CSS + 9 JS</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 5 ══ -->
+  <div class="slide" data-slide="5">
+    <div class="eyebrow">Architecture</div>
+    <div class="title">Modular. <span class="hi-purple">Hand-Crafted.</span> Fast.</div>
+    <div class="file-tree">
+      <div><span class="tree-file">index.html</span>  <span class="tree-comment">— single entry, loads all modules</span></div>
+      <div><span class="tree-dir">css/</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-file">base.css</span>  <span class="tree-comment">— variables, themes, keyframes</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-file">components.css</span>  <span class="tree-comment">— all UI components</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-file">layout.css</span>  <span class="tree-comment">— shell, nav, topbar, modal</span></div>
+      <div><span class="tree-dir">js/</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-file">storage.js</span>  <span class="tree-comment">— S object, profile isolation</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-file">app.js</span>  <span class="tree-comment">— router, 8 engines, helpers, nav</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-dir">modules/</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-file">onboarding.js</span> <span class="tree-comment">workout.js</span> <span class="tree-comment">coach.js</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-file">progress.js</span> <span class="tree-comment">nutrition.js</span> <span class="tree-comment">recovery.js</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-file">bodymap.js</span> <span class="tree-comment">settings.js</span> <span class="tree-comment">dashboard.js</span></div>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <span class="pill">ReadinessEngine</span>
+      <span class="pill pill-purple">MuscleEngine</span>
+      <span class="pill">SplitEngine</span>
+      <span class="pill pill-purple">WeightEngine</span>
+      <span class="pill">CoachEngine</span>
+      <span class="pill pill-green">ProgEngine (Epley)</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 6 ══ -->
+  <div class="slide" data-slide="6">
+    <div class="eyebrow">Multi-Profile System</div>
+    <div class="title">One App. <span class="hi-cyan">Unlimited Athletes.</span></div>
+    <div class="two-col">
+      <div class="glass-card">
+        <div style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:12px;">Profile Isolation</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--muted);">
+          <li>✦ Each profile is a scoped localStorage namespace</li>
+          <li>✦ Workouts, PRs, nutrition — all siloed per user</li>
+          <li>✦ Switch profiles in under 200ms, no reload</li>
+          <li>✦ Legacy migration on first launch</li>
+        </ul>
+      </div>
+      <div class="glass-card">
+        <div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:12px; color:#a99fff;">Demo Mode</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--muted);">
+          <li>✦ Instant preview with seeded sample data</li>
+          <li>✦ Full 12-step onboarding flow</li>
+          <li>✦ 4 intro slides before profile creation</li>
+          <li>✦ Export any profile as JSON backup</li>
+        </ul>
+      </div>
+    </div>
+    <div class="stat-row" style="margin-top:28px;">
+      <div class="stat-card"><div class="stat-num">∞</div><div class="stat-label">Profiles</div></div>
+      <div class="stat-card"><div class="stat-num">12</div><div class="stat-label">Onboarding Steps</div></div>
+      <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Intro Slides</div></div>
+      <div class="stat-card"><div class="stat-num">1</div><div class="stat-label">Tap Export</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 7 ══ -->
+  <div class="slide" data-slide="7">
+    <div class="eyebrow">Exercise Database</div>
+    <div class="title"><span class="hi-cyan">300+</span> Exercises. Every Detail.</div>
+    <div class="grid-2" style="max-width:760px;">
+      <div class="mini-card">
+        <div class="mini-card-title">14 Muscle Groups</div>
+        <div class="mini-card-body">Chest, back, shoulders, arms, legs, glutes, core, calves, and more — filterable.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Coaching Cues</div>
+        <div class="mini-card-body">Per-exercise form tips displayed mid-set to reinforce technique.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Joint Stress Heatmap</div>
+        <div class="mini-card-body">Shoulder, knee, spine, wrist, elbow, hip — flagged per exercise automatically.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Difficulty + Spotter Flags</div>
+        <div class="mini-card-body">Beginner → Elite ratings + spotter-required warning on compound lifts.</div>
+      </div>
+    </div>
+    <div class="tag-cloud">
+      <span class="pill">Barbell</span>
+      <span class="pill">Dumbbell</span>
+      <span class="pill">Machine</span>
+      <span class="pill">Cable</span>
+      <span class="pill pill-purple">Bodyweight</span>
+      <span class="pill pill-green">Kettlebell</span>
+      <span class="pill pill-pink">Bands</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 8 ══ -->
+  <div class="slide" data-slide="8">
+    <div class="eyebrow">Active Workout Logger</div>
+    <div class="title">Log Smarter. <span class="hi-cyan">Train Harder.</span></div>
+    <div class="two-col">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <ul class="bullets" style="margin-top:0;">
+          <li>
+            <div class="bullet-icon" style="font-size:11px;">SET</div>
+            <div><span class="hi-cyan">Set-by-set logging</span> with weight, reps, RPE, and per-set notes</div>
+          </li>
+          <li>
+            <div class="bullet-icon" style="background:linear-gradient(135deg,var(--purple),var(--pink));font-size:11px;">PR</div>
+            <div><span class="hi-purple">Auto PR detection</span> via Epley 1RM — fires a celebration animation</div>
+          </li>
+          <li>
+            <div class="bullet-icon" style="background:linear-gradient(135deg,var(--green),var(--cyan));font-size:11px;">SS</div>
+            <div><span class="hi-green">Superset mode</span> — pair any two exercises, alternating logging</div>
+          </li>
+          <li>
+            <div class="bullet-icon">⏱</div>
+            <div><span class="hi-cyan">SVG rest timer ring</span> — animated countdown, auto-suggested rest by intensity</div>
+          </li>
+        </ul>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;">
+        <svg width="160" height="160" viewBox="0 0 160 160">
+          <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12"/>
+          <circle cx="80" cy="80" r="68" fill="none" stroke="url(#rg)" stroke-width="12"
+            stroke-dasharray="427" stroke-dashoffset="107" stroke-linecap="round"
+            transform="rotate(-90 80 80)"/>
+          <defs>
+            <linearGradient id="rg" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#00d5ff"/>
+              <stop offset="100%" stop-color="#6b5fff"/>
+            </linearGradient>
+          </defs>
+          <text x="80" y="74" text-anchor="middle" fill="#fff" font-size="28" font-weight="900" font-family="system-ui">1:30</text>
+          <text x="80" y="96" text-anchor="middle" fill="#888899" font-size="11" font-family="system-ui">REST</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 9 ══ -->
+  <div class="slide" data-slide="9">
+    <div class="eyebrow">Cardio Protocols</div>
+    <div class="title">Science-Backed <span class="hi-cyan">Cardio Engine</span></div>
+    <div class="grid-3">
+      <div class="mini-card" style="border-color:rgba(255,77,158,0.3);">
+        <div class="mini-card-title" style="color:var(--pink);">HIIT</div>
+        <div class="mini-card-body">High-intensity intervals. 2:1 work/rest. Max VO2 stimulus.</div>
+      </div>
+      <div class="mini-card" style="border-color:rgba(0,213,255,0.3);">
+        <div class="mini-card-title" style="color:var(--cyan);">LISS</div>
+        <div class="mini-card-body">Low-intensity steady-state. Fat oxidation zone. Active recovery.</div>
+      </div>
+      <div class="mini-card" style="border-color:rgba(107,95,255,0.3);">
+        <div class="mini-card-title" style="color:#a99fff;">MISS</div>
+        <div class="mini-card-body">Moderate intensity. Aerobic base building. Sustainable effort.</div>
+      </div>
+      <div class="mini-card" style="border-color:rgba(0,255,170,0.3);">
+        <div class="mini-card-title" style="color:var(--green);">SIT</div>
+        <div class="mini-card-body">Sprint interval training. All-out 30s bursts. Anaerobic peak.</div>
+      </div>
+      <div class="mini-card" style="border-color:rgba(255,193,7,0.3);">
+        <div class="mini-card-title" style="color:#ffd54f;">Fartlek</div>
+        <div class="mini-card-body">Unstructured speed play. Variable pace, intuitive transitions.</div>
+      </div>
+      <div class="mini-card" style="border-color:rgba(255,77,158,0.2);">
+        <div class="mini-card-title" style="color:var(--pink);">Circuit</div>
+        <div class="mini-card-body">Multi-station strength-cardio hybrid. Minimal rest, max density.</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;font-size:13px;color:var(--muted);text-align:center;">Each protocol: duration, intensity zone, target HR%, session log, calorie estimate</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 10 ══ -->
+  <div class="slide" data-slide="10">
+    <div class="eyebrow">AI Coach</div>
+    <div class="title">5 Personalities. <span class="hi-cyan">Zero Fluff.</span></div>
+    <div class="persona-row">
+      <div class="persona">
+        <span class="persona-emoji">👩</span>
+        <div class="persona-name" style="color:var(--pink);">Maya</div>
+        <div class="persona-role">Supportive &amp; Empathetic</div>
+      </div>
+      <div class="persona">
+        <span class="persona-emoji">🧑</span>
+        <div class="persona-name" style="color:var(--cyan);">Alex</div>
+        <div class="persona-role">Data-Driven &amp; Precise</div>
+      </div>
+      <div class="persona">
+        <span class="persona-emoji">🧑‍🦱</span>
+        <div class="persona-name" style="color:var(--green);">Sam</div>
+        <div class="persona-role">Energetic &amp; Motivational</div>
+      </div>
+      <div class="persona">
+        <span class="persona-emoji">🧘</span>
+        <div class="persona-name" style="color:#a99fff;">Zen</div>
+        <div class="persona-role">Mindful &amp; Holistic</div>
+      </div>
+      <div class="persona">
+        <span class="persona-emoji">🦁</span>
+        <div class="persona-name" style="color:var(--pink);">Rex</div>
+        <div class="persona-role">Drill-Sergeant Intensity</div>
+      </div>
+    </div>
+    <div class="stat-row" style="margin-top:24px;">
+      <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">Personalities</div></div>
+      <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Tone Modes</div></div>
+      <div class="stat-card"><div class="stat-num">∞</div><div class="stat-label">Insights</div></div>
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center;">Tones: Direct / Balanced / Gentle &nbsp;·&nbsp; Goal-aware: Cut, Bulk, Maintain, Recomp, Endurance, Strength</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 11 ══ -->
+  <div class="slide" data-slide="11">
+    <div class="eyebrow">Daily Briefing</div>
+    <div class="title">Your Day, <span class="hi-cyan">Intelligently Assembled</span></div>
+    <div class="grid-2" style="max-width:760px;">
+      <div class="mini-card">
+        <div class="mini-card-title">Readiness Score</div>
+        <div class="mini-card-body">0–100 composite score shown at a glance — green/yellow/red traffic-light color.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Today's Plan</div>
+        <div class="mini-card-body">SplitEngine determines push/pull/legs/rest day. Exercise list generated automatically.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Injury Alerts</div>
+        <div class="mini-card-body">Active injuries surfaced with red flag. Affected exercises auto-filtered from plan.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Supplement Reminders</div>
+        <div class="mini-card-body">Timing-aware — pre-workout, with meal, before bed. Due-now highlighted in cyan.</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;font-size:13px;color:var(--muted);">All data sourced locally — no API call, loads in &lt; 50ms</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 12 ══ -->
+  <div class="slide" data-slide="12">
+    <div class="eyebrow">Readiness Engine</div>
+    <div class="title">0 – 100. <span class="hi-green">Scientifically Weighted.</span></div>
+    <div class="bar-row">
+      <div class="bar-item">
+        <div class="bar-label">Sleep</div>
+        <div class="bar-track"><div class="bar-fill" style="width:88%"></div></div>
+        <div class="bar-val">88</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">Energy</div>
+        <div class="bar-track"><div class="bar-fill" style="width:75%"></div></div>
+        <div class="bar-val">75</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">Soreness</div>
+        <div class="bar-track"><div class="bar-fill" style="width:60%;background:linear-gradient(90deg,var(--pink),var(--purple));"></div></div>
+        <div class="bar-val" style="color:var(--pink);">60</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">Stress</div>
+        <div class="bar-track"><div class="bar-fill" style="width:70%;background:linear-gradient(90deg,var(--pink),var(--purple));"></div></div>
+        <div class="bar-val" style="color:var(--pink);">70</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">Hydration</div>
+        <div class="bar-track"><div class="bar-fill" style="width:90%"></div></div>
+        <div class="bar-val">90</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">Streak</div>
+        <div class="bar-track"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,var(--green),var(--cyan));"></div></div>
+        <div class="bar-val" style="color:var(--green);">7d</div>
+      </div>
+    </div>
+    <div style="margin-top:24px;text-align:center;">
+      <div style="font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Composite Score</div>
+      <div style="font-size:4rem;font-weight:900;background:linear-gradient(135deg,var(--cyan),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">82</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 13 ══ -->
+  <div class="slide" data-slide="13">
+    <div class="eyebrow">Body Map</div>
+    <div class="title">Interactive Anatomy. <span class="hi-purple">Recovery Coloring.</span></div>
+    <div class="two-col">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <ul class="bullets" style="margin-top:0;">
+          <li>
+            <div class="bullet-icon" style="font-size:10px;">SVG</div>
+            <div><span class="hi-cyan">Interactive SVG</span> front &amp; back body — every major muscle group clickable</div>
+          </li>
+          <li>
+            <div class="bullet-icon" style="background:linear-gradient(135deg,var(--green),var(--cyan));font-size:10px;">■</div>
+            <div><span class="hi-green">Recovery colors</span> — fresh (green) → sore (yellow) → injured (red)</div>
+          </li>
+          <li>
+            <div class="bullet-icon" style="background:linear-gradient(135deg,var(--purple),var(--pink));font-size:10px;">📏</div>
+            <div><span class="hi-purple">11-point measurements</span> — neck to calves, cm or inches, trend history</div>
+          </li>
+        </ul>
+      </div>
+      <div class="body-grid" style="margin-top:0;">
+        <div class="muscle-chip fresh">Chest</div>
+        <div class="muscle-chip fresh">Back</div>
+        <div class="muscle-chip warn">Shoulders</div>
+        <div class="muscle-chip warn">Triceps</div>
+        <div class="muscle-chip fresh">Biceps</div>
+        <div class="muscle-chip sore">Quads</div>
+        <div class="muscle-chip sore">Hamstrings</div>
+        <div class="muscle-chip fresh">Glutes</div>
+        <div class="muscle-chip fresh">Core</div>
+        <div class="muscle-chip warn">Calves</div>
+        <div class="muscle-chip fresh">Forearms</div>
+        <div class="muscle-chip fresh">Traps</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 14 ══ -->
+  <div class="slide" data-slide="14">
+    <div class="eyebrow">Injury System</div>
+    <div class="title">Train Safely. <span class="hi-pink">Auto-Protect Joints.</span></div>
+    <div class="grid-2" style="max-width:760px;">
+      <div class="mini-card" style="border-color:rgba(255,77,158,0.3);">
+        <div class="mini-card-title" style="color:var(--pink);">Joint Stress Flags</div>
+        <div class="mini-card-body">Every exercise tagged with: Shoulder · Knee · Spine · Wrist · Elbow · Hip stress levels.</div>
+      </div>
+      <div class="mini-card" style="border-color:rgba(255,193,7,0.3);">
+        <div class="mini-card-title" style="color:#ffd54f;">Smart Filtering</div>
+        <div class="mini-card-body">Mark an injury → affected exercises auto-removed from today's split. No manual edits needed.</div>
+      </div>
+      <div class="mini-card" style="border-color:rgba(0,213,255,0.3);">
+        <div class="mini-card-title" style="color:var(--cyan);">Mark Recovered</div>
+        <div class="mini-card-body">One-tap recovery toggle. Instantly restores exercises to your program.</div>
+      </div>
+      <div class="mini-card" style="border-color:rgba(0,255,170,0.3);">
+        <div class="mini-card-title" style="color:var(--green);">Body Part Filter</div>
+        <div class="mini-card-body">Browse exercises by the 14 muscle groups. Injury awareness surfaces alternative movements.</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;font-size:13px;color:var(--muted);text-align:center;">Injuries persist across sessions and surface in Daily Briefing until resolved</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 15 ══ -->
+  <div class="slide" data-slide="15">
+    <div class="eyebrow">Progress &amp; PRs</div>
+    <div class="title">Every Gain. <span class="hi-cyan">Visualized.</span></div>
+    <div class="two-col">
+      <div class="glass-card">
+        <div style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:12px;">Charts (hand-rolled SVG)</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--muted);">
+          <li>✦ Strength trend — Epley 1RM over time per exercise</li>
+          <li>✦ Weight trend — bodyweight history with moving avg</li>
+          <li>✦ Volume chart — weekly set × rep × weight total</li>
+          <li>✦ Muscle frequency heatmap — what you've trained</li>
+        </ul>
+      </div>
+      <div class="glass-card">
+        <div style="font-size:13px;font-weight:700;color:#a99fff;margin-bottom:12px;">PR Wall &amp; Achievements</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--muted);">
+          <li>✦ All-time PRs stored per exercise — auto-updated</li>
+          <li>✦ Achievement badges: First PR, 10 workouts, 100 sets…</li>
+          <li>✦ Streak tracking via StreakEngine</li>
+          <li>✦ Celebration animation on new PR detection</li>
+        </ul>
+      </div>
+    </div>
+    <div style="margin-top:20px;font-size:13px;color:var(--muted);text-align:center;">ProgEngine.epley(weight, reps) = weight × (1 + reps / 30)</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 16 ══ -->
+  <div class="slide" data-slide="16">
+    <div class="eyebrow">Nutrition &amp; Supplements</div>
+    <div class="title">Fuel Right. <span class="hi-green">Time It Right.</span></div>
+    <div class="grid-2" style="max-width:760px;">
+      <div class="mini-card">
+        <div class="mini-card-title">Macro Tracking</div>
+        <div class="mini-card-body">Log protein, carbs, fat, calories per meal. Daily total with progress ring visualization.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">20+ Supplements</div>
+        <div class="mini-card-body">Creatine, whey, omega-3, vitamin D, magnesium, pre-workout, ZMA, and more.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Timing Engine</div>
+        <div class="mini-card-body">SupplementEngine.getDueNow() — pre-workout, with meal, before bed, on waking.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Reminders</div>
+        <div class="mini-card-body">Due-now supplements highlighted in the Daily Briefing. Never miss a dose.</div>
+      </div>
+    </div>
+    <div class="stat-row" style="margin-top:24px;">
+      <div class="stat-card"><div class="stat-num">20<span style="font-size:1.2rem">+</span></div><div class="stat-label">Supplements</div></div>
+      <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Timing Windows</div></div>
+      <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Macros Tracked</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 17 ══ -->
+  <div class="slide" data-slide="17">
+    <div class="eyebrow">PWA Capabilities</div>
+    <div class="title">Offline First. <span class="hi-cyan">Always Ready.</span></div>
+    <div class="icon-strip">
+      <div class="icon-block">
+        <div class="icon-circle">📵</div>
+        <div class="icon-text">Full Offline</div>
+      </div>
+      <div class="icon-block">
+        <div class="icon-circle">📱</div>
+        <div class="icon-text">Installable iOS &amp; Android</div>
+      </div>
+      <div class="icon-block">
+        <div class="icon-circle">⚡</div>
+        <div class="icon-text">&lt; 200ms Boot</div>
+      </div>
+      <div class="icon-block">
+        <div class="icon-circle">🔒</div>
+        <div class="icon-text">No Server</div>
+      </div>
+      <div class="icon-block">
+        <div class="icon-circle">💾</div>
+        <div class="icon-text">Service Worker</div>
+      </div>
+    </div>
+    <div class="glass-card" style="max-width:640px;margin-top:28px;">
+      <div style="font-size:12px;font-family:'SF Mono','Fira Code',monospace;color:var(--muted);line-height:2;">
+        <span style="color:var(--cyan);">Cache Name:</span> fos-v6<br>
+        <span style="color:var(--cyan);">Strategy:</span> Cache-First → Network Fallback<br>
+        <span style="color:var(--cyan);">Offline Banner:</span> Auto-shown on connection loss<br>
+        <span style="color:var(--cyan);">Precached:</span> HTML + all CSS + all JS + manifest + icons
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center;">Works on Safari iOS, Chrome Android, desktop PWA — tested at 390px viewport</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 18 ══ -->
+  <div class="slide" data-slide="18">
+    <div class="eyebrow">Settings</div>
+    <div class="title">Your App. <span class="hi-purple">Your Rules.</span></div>
+    <div class="grid-2" style="max-width:760px;">
+      <div class="mini-card">
+        <div class="mini-card-title">8 Themes</div>
+        <div class="mini-card-body">Carbon · Stealth · Forest · Arctic · Electric · Sunset · Neon · Dusk — live preview on select.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">6 Training Splits</div>
+        <div class="mini-card-body">PPL · Upper-Lower · Full Body · Bro Split · Push-Pull · Rest-Heavy. SplitEngine adapts daily plan.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Nav Tab Customization</div>
+        <div class="mini-card-body">Pick your 5 tabs from all modules. Reorder via drag. Saved instantly to localStorage.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">Import / Export</div>
+        <div class="mini-card-body">Full profile JSON backup — includes workouts, PRs, nutrition, supplements, and settings.</div>
+      </div>
+    </div>
+    <div class="tag-cloud" style="margin-top:20px;">
+      <span class="pill">Units: kg / lbs</span>
+      <span class="pill">Height: cm / in / ft</span>
+      <span class="pill pill-purple">Week starts: Mon / Sun</span>
+      <span class="pill pill-green">Rest timer on/off</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 19 ══ -->
+  <div class="slide" data-slide="19">
+    <div class="eyebrow">By The Numbers</div>
+    <div class="title">The <span class="hi-cyan">Metrics</span> That Matter</div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num">300<span style="font-size:1.2rem">+</span></div><div class="stat-label">Exercises</div></div>
+      <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Cardio Protocols</div></div>
+      <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">Coach Personas</div></div>
+      <div class="stat-card"><div class="stat-num">8</div><div class="stat-label">Themes</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num">14</div><div class="stat-label">Sessions Built</div></div>
+      <div class="stat-card"><div class="stat-num">8</div><div class="stat-label">Engines</div></div>
+      <div class="stat-card"><div class="stat-num">12</div><div class="stat-label">Onboarding Steps</div></div>
+      <div class="stat-card"><div class="stat-num">0</div><div class="stat-label">npm packages</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num">14</div><div class="stat-label">Muscle Groups</div></div>
+      <div class="stat-card"><div class="stat-num">20<span style="font-size:1.2rem">+</span></div><div class="stat-label">Supplements</div></div>
+      <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Splits</div></div>
+      <div class="stat-card"><div class="stat-num">∞</div><div class="stat-label">Offline</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 20 ══ -->
+  <div class="slide" data-slide="20">
+    <div class="eyebrow">Thank You</div>
+    <div class="title" style="font-size:clamp(2.4rem,5vw,3.8rem);">FitnessOS <span class="hi-cyan">Pro</span></div>
+    <div class="subtitle" style="margin-bottom:24px;">Production-grade fitness OS. Zero dependencies. Fully offline. Yours forever.</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <div class="closing-url">shamikhahmed.github.io/FitnessOS</div>
+      <div style="font-size:13px;color:var(--muted);">github.com/shamikhahmed/FitnessOS</div>
+    </div>
+    <div class="badge-row">
+      <div class="big-badge" style="background:rgba(0,213,255,0.08);border:1px solid rgba(0,213,255,0.25);color:var(--cyan);">
+        14 Sessions<br><span style="font-size:11px;color:var(--muted);font-weight:400;">with Claude Code</span>
+      </div>
+      <div class="big-badge" style="background:rgba(107,95,255,0.08);border:1px solid rgba(107,95,255,0.25);color:#a99fff;">
+        Vanilla JS Only<br><span style="font-size:11px;color:var(--muted);font-weight:400;">Zero build tools</span>
+      </div>
+      <div class="big-badge" style="background:rgba(0,255,170,0.06);border:1px solid rgba(0,255,170,0.25);color:var(--green);">
+        Offline First<br><span style="font-size:11px;color:var(--muted);font-weight:400;">Service Worker v6</span>
+      </div>
+    </div>
+    <div style="margin-top:28px;font-size:12px;color:#555566;letter-spacing:1px;">
+      Built with Claude Code — production-grade output, 14 sessions, 0 compromises
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- Nav arrows -->
+<button class="nav-arrow hidden" id="nav-prev" onclick="navigate(-1)" title="Previous">←</button>
+<button class="nav-arrow" id="nav-next" onclick="navigate(1)" title="Next">→</button>
+<div id="slide-num">1 / 20</div>
+
+<script>
+// ── Orb canvas ──────────────────────────────────────────────
+const canvas = document.getElementById('orb-canvas');
+const ctx = canvas.getContext('2d');
+const orbs = [];
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+class Orb {
+  constructor() { this.reset(true); }
+  reset(init) {
+    this.x = Math.random() * canvas.width;
+    this.y = init ? Math.random() * canvas.height : canvas.height + 100;
+    this.r = 120 + Math.random() * 200;
+    this.vx = (Math.random() - 0.5) * 0.3;
+    this.vy = -(0.1 + Math.random() * 0.2);
+    this.colors = Math.random() > 0.5
+      ? ['rgba(0,213,255,0.04)', 'rgba(0,213,255,0)']
+      : ['rgba(107,95,255,0.06)', 'rgba(107,95,255,0)'];
+  }
+  draw() {
+    const g = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.r);
+    g.addColorStop(0, this.colors[0]);
+    g.addColorStop(1, this.colors[1]);
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
+  update() {
+    this.x += this.vx; this.y += this.vy;
+    if (this.y + this.r < 0) this.reset(false);
+  }
+}
+
+for (let i = 0; i < 6; i++) orbs.push(new Orb());
+
+function animateOrbs() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  orbs.forEach(o => { o.update(); o.draw(); });
+  requestAnimationFrame(animateOrbs);
+}
+animateOrbs();
+
+// ── Slide engine ─────────────────────────────────────────────
+const slides = Array.from(document.querySelectorAll('.slide'));
+const TOTAL = slides.length;
+let current = 0;
+let transitioning = false;
+
+function goTo(idx) {
+  if (transitioning || idx < 0 || idx >= TOTAL) return;
+  transitioning = true;
+
+  const prev = slides[current];
+  const next = slides[idx];
+
+  prev.classList.add('exit');
+  prev.classList.remove('active');
+
+  setTimeout(() => {
+    prev.classList.remove('exit');
+    next.classList.add('active');
+    current = idx;
+    updateUI();
+    transitioning = false;
+  }, 480);
+}
+
+function navigate(dir) { goTo(current + dir); }
+
+function updateUI() {
+  const pct = ((current + 1) / TOTAL * 100).toFixed(1);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('slide-num').textContent = (current+1) + ' / ' + TOTAL;
+  document.getElementById('nav-prev').classList.toggle('hidden', current === 0);
+  document.getElementById('nav-next').classList.toggle('hidden', current === TOTAL-1);
+}
+
+// ── Keyboard nav ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault(); navigate(1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault(); navigate(-1);
+  } else if (e.key === 'Home') {
+    goTo(0);
+  } else if (e.key === 'End') {
+    goTo(TOTAL - 1);
+  }
+});
+
+// ── Click anywhere to advance (but not on buttons) ───────────
+document.getElementById('deck').addEventListener('click', e => {
+  if (e.target.closest('.nav-arrow')) return;
+  const x = e.clientX / window.innerWidth;
+  navigate(x > 0.5 ? 1 : -1);
+});
+
+// ── Touch swipe ──────────────────────────────────────────────
+let touchX = 0;
+document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+}, {passive:true});
+
+updateUI();
+</script>
+</body>
+</html>
