@@ -41,11 +41,24 @@ reg('dashboard', function() {
     const isDark = (S.g('user.mode') || 'dark') !== 'light';
     const modeIcon = isDark ? '🌙' : '☀️';
     const nextMode = isDark ? 'light' : 'dark';
+    const activeProf = S.profiles().find(function(p){return p.id===S.activeId();}) || {avatar:'💪'};
+    const isDemoMode = S.activeId() === 'demo';
+    const demoBanner = isDemoMode ?
+      '<div style="background:linear-gradient(135deg,rgba(123,95,255,0.15),rgba(0,213,255,0.1));' +
+      'border-bottom:1px solid rgba(123,95,255,0.2);padding:10px 16px;' +
+      'display:flex;align-items:center;justify-content:space-between;gap:12px">' +
+      '<div style="font-size:13px;color:#7b5fff;font-weight:600">🤖 Demo Mode — exploring sample data</div>' +
+      '<button onclick="go(\'profiles\')" style="font-size:12px;color:var(--c1);font-weight:600;' +
+      'background:none;border:none;cursor:pointer;touch-action:manipulation;white-space:nowrap">Switch →</button>' +
+      '</div>' : '';
     const topbarHTML = '<div class="topbar">' +
-      '<div class="topbar-left">' +
+      '<div class="topbar-left" style="cursor:pointer;touch-action:manipulation" onclick="go(\'profiles\')">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+      '<div style="font-size:20px">'+activeProf.avatar+'</div>' +
+      '<div>' +
       '<div class="topbar-greeting">'+esc(greeting)+', '+esc(name)+' 👋</div>' +
       '<div class="topbar-date">'+esc(todayStr)+'</div>' +
-      '</div>' +
+      '</div></div></div>' +
       '<div class="topbar-right">' +
       '<button class="topbar-icon press" onclick="applyMode(\''+nextMode+'\')" aria-label="Toggle mode">'+modeIcon+'</button>' +
       '<button class="topbar-icon press" onclick="applyTheme(\''+_nextTheme(user.theme||'carbon')+'\')">🎨</button>' +
@@ -229,7 +242,8 @@ reg('dashboard', function() {
       _eCard('🤖', 'AI Coach', 'Insights & plans', 'coach') +
       '</div>';
 
-    return topbarHTML +
+    return demoBanner +
+      topbarHTML +
       readinessHTML +
       planHTML +
       ringsHTML +

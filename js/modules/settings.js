@@ -236,6 +236,10 @@ function _tabData() {
     _infoStat('Version', 'v4.0', 'FitnessOS') +
     '</div></div>' +
 
+    _sectionTitle('Profiles') +
+    '<button class="btn btn-secondary" onclick="go(\'profiles\')" style="margin-bottom:10px">👤 Manage Profiles</button>' +
+    '<button class="btn btn-danger" onclick="confirmClearData()" style="margin-bottom:10px">🗑️ Reset This Profile</button>' +
+
     _sectionTitle('Export & Import') +
     '<button class="btn btn-secondary" onclick="exportData()" style="margin-bottom:10px">📤 Export Backup (JSON)</button>' +
     '<div class="field-wrap">' +
