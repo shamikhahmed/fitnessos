@@ -228,6 +228,7 @@ reg('dashboard', function() {
       eCard('📊','Physique','Scores & growth projections','physique') +
       eCard('🦴','Joint Health','Injury risk monitor','injury-risk') +
       eCard('🧠','Training Intel','Age, volume & specialization','training-intel') +
+      eCard('📖','Encyclopedia','Mobility · Stretching · Sports','encyclopedia') +
       '</div></div>';
 
     return demoBanner + topbar + hero + dailyDecisionCard + todayWorkout + statsRow +

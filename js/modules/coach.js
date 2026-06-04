@@ -139,6 +139,7 @@ reg('coach', function() {
     _suppTimingBlock(userSupps, user) +
     _deloadBlock(user) +
     '<div style="padding:0 16px 16px"><button class="btn btn-secondary" onclick="go(\'training-intel\')" style="width:100%">🧠 Training Intelligence →</button><button class="btn btn-secondary" onclick="go(\'injury-risk\')" style="margin-top:8px;width:100%">🦴 Joint Health Monitor →</button></div>' +
+    '<div style="padding:0 16px 16px"><button class="btn btn-secondary" onclick="go(\'encyclopedia\')" style="width:100%">📖 Fitness Encyclopedia →</button></div>' +
     '<div style="height:20px"></div>';
 });
 
