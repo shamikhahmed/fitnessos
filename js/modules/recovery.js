@@ -14,6 +14,7 @@ reg('recovery', function() {
     _recoveryHistoryChart() +
     _sleepInsights() +
     _recoveryRecs(score) +
+    '<div style="padding:0 16px 16px"><button class="btn btn-secondary" onclick="go(\'recovery-debt\')" style="width:100%">📊 Recovery Debt &amp; Forecast →</button></div>' +
     '<div style="height:20px"></div>';
 });
 

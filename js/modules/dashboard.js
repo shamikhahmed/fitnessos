@@ -71,6 +71,17 @@ reg('dashboard', function() {
       '<div style="width:'+score+'%;height:100%;background:'+scoreColor+';border-radius:2px;transition:width 0.8s ease"></div>' +
       '</div></div>';
 
+    /* ── DAILY DECISION MINI-CARD ── */
+    const dd = typeof DailyDecision !== 'undefined' ? DailyDecision.decide() : null;
+    const dailyDecisionCard = dd ? '<div onclick="go(\'recovery-debt\')" style="margin:0 16px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px 16px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:14px">' +
+      '<div style="font-size:32px">' + dd.emoji + '</div>' +
+      '<div style="flex:1">' +
+      '<div style="font-size:13px;font-weight:700;color:' + dd.color + '">' + esc(dd.title) + '</div>' +
+      '<div style="font-size:11px;color:var(--txt3);margin-top:2px">' + esc(dd.actions[0]) + '</div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--txt3)">›</div>' +
+      '</div>' : '';
+
     /* ── TODAY'S WORKOUT ── */
     const todayWorkout = '<div style="margin:0 16px 14px;border-radius:20px;background:var(--grad);padding:18px 20px;position:relative;overflow:hidden">' +
       '<div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>' +
@@ -216,7 +227,7 @@ reg('dashboard', function() {
       eCard('🤸','Skills','Calisthenics progressions','calisthenics') +
       '</div></div>';
 
-    return demoBanner + topbar + hero + todayWorkout + statsRow +
+    return demoBanner + topbar + hero + dailyDecisionCard + todayWorkout + statsRow +
       goalBar + quickActions + weeklyVolumeChart + muscleChips + insightCard + suppRow + lastWktCard + exploreGrid +
       '<div style="height:20px"></div>';
 
