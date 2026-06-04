@@ -211,6 +211,9 @@ reg('dashboard', function() {
       eCard('📈','Progress','Charts & PRs','progress') +
       eCard('🫀','Body Map','Recovery & stats','bodymap') +
       eCard('💊','Nutrition','Macros & supps','nutrition') +
+      eCard('🩹','Rehab Hub','Injury protocols','rehab') +
+      eCard('💪','Muscle Atlas','80+ muscles','anatomy') +
+      eCard('🤸','Skills','Calisthenics progressions','calisthenics') +
       '</div></div>';
 
     return demoBanner + topbar + hero + todayWorkout + statsRow +

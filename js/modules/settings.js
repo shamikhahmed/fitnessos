@@ -239,8 +239,8 @@ function _tabAppearance(u) {
     _sectionTitle('Navigation Tabs') +
     '<div style="font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.5">Tap to toggle which tabs appear in the bottom nav (minimum 3).</div>' +
     (function() {
-      const allTabs = ['dashboard','workout','bodymap','coach','progress','settings'];
-      const tabIcons = {dashboard:'🏠',workout:'💪',bodymap:'🫀',coach:'🤖',progress:'📈',settings:'⚙️'};
+      const allTabs = ['dashboard','workout','bodymap','coach','progress','rehab','anatomy','calisthenics','settings'];
+      const tabIcons = {dashboard:'🏠',workout:'💪',bodymap:'🫀',coach:'🤖',progress:'📈',rehab:'🩹',anatomy:'🫀',calisthenics:'🤸',settings:'⚙️'};
       const cur = S.g('nav.tabs') || ['dashboard','workout','bodymap','coach','settings'];
       return allTabs.map(function(t) {
         const active = cur.includes(t);
