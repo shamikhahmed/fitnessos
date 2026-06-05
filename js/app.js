@@ -22,6 +22,7 @@ function go(id, data) {
     div.innerHTML = html;
     v.innerHTML = '';
     v.appendChild(div);
+    div.style.animation = 'fadeUp 0.3s cubic-bezier(.22,1,.36,1) both';
     const nav = document.getElementById('nav');
     const noNav = ['onboarding', 'intro', 'briefing'];
     if (nav) nav.style.display = noNav.includes(id) ? 'none' : 'flex';
@@ -1094,4 +1095,25 @@ function buildNav() {
   }).join('');
 }
 window.buildNav = buildNav;
+
+/* ══════════════════════════════════════════════════════
+   CELEBRATION OVERLAY
+══════════════════════════════════════════════════════ */
+window.celebrate = function(icon, title, sub, duration) {
+  var dur = duration || 2200;
+  var existing = document.getElementById('celebration-overlay');
+  if (existing) existing.remove();
+  var el = document.createElement('div');
+  el.id = 'celebration-overlay';
+  el.innerHTML = '<div class="cel-icon">' + (icon || '🎉') + '</div>' +
+    '<div class="cel-title">' + (title || 'Achievement Unlocked!') + '</div>' +
+    (sub ? '<div class="cel-sub">' + sub + '</div>' : '');
+  document.body.appendChild(el);
+  if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
+  setTimeout(function() {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.4s ease';
+    setTimeout(function() { el.remove(); }, 400);
+  }, dur);
+};
 

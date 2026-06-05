@@ -264,7 +264,12 @@ function _volumeChart(ws) {
 
 function _prBoard(prs) {
   if (!prs.length) return sh('Personal Records') +
-    emptyState('🏆','No PRs yet','Complete workouts to set personal records!');
+    '<div style="text-align:center;padding:40px 24px">' +
+    '<div style="font-size:56px;margin-bottom:12px;animation:fadeUp 0.4s both">🏆</div>' +
+    '<div style="font-size:19px;font-weight:900;color:var(--txt);margin-bottom:6px;animation:fadeUp 0.4s 0.08s both">No PRs yet</div>' +
+    '<div style="font-size:13px;color:var(--txt3);line-height:1.6;max-width:220px;margin:0 auto 20px;animation:fadeUp 0.4s 0.16s both">Hit a heavy set in your next workout to set your first personal record.</div>' +
+    '<button onclick="go(\'workout\')" class="btn btn-primary" style="animation:fadeUp 0.4s 0.24s both;animation-fill-mode:both">▶ Start Workout</button>' +
+    '</div>';
   const sorted = [...prs].sort((a,b) => new Date(b.date)-new Date(a.date));
   return sh('Personal Records') +
     '<div style="padding:0 16px">' +
@@ -307,7 +312,12 @@ function _strengthCharts(ws, prs) {
 
 function _bodyStatsChart(bodyStats, user) {
   if (!bodyStats || !bodyStats.length) return sh('Weight Trend') +
-    emptyState('⚖️','No weight data','Log your weight in Body Map');
+    '<div style="text-align:center;padding:40px 24px">' +
+    '<div style="font-size:56px;margin-bottom:12px;animation:fadeUp 0.4s both">⚖️</div>' +
+    '<div style="font-size:19px;font-weight:900;color:var(--txt);margin-bottom:6px;animation:fadeUp 0.4s 0.08s both">No weight data</div>' +
+    '<div style="font-size:13px;color:var(--txt3);line-height:1.6;max-width:220px;margin:0 auto 20px;animation:fadeUp 0.4s 0.16s both">Track your body weight to see trends and physique progress.</div>' +
+    '<button onclick="go(\'bodymap\')" class="btn btn-secondary" style="animation:fadeUp 0.4s 0.24s both;animation-fill-mode:both">📍 Open Body Map</button>' +
+    '</div>';
   var isImperial = (user||{}).units === 'imperial';
   var pts = bodyStats.slice(-12);
 

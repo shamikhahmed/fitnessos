@@ -271,6 +271,7 @@ const QuestEngine = {
         const completedList = S.g('completedQuests') || [];
         completedList.push({ id: quest.templateId, completedDate: today(), reward: quest.reward });
         S.set('completedQuests', completedList);
+        if (typeof celebrate === 'function') celebrate('⚔️', 'Quest Complete!', quest.title + ' · +' + (quest.reward.xp || 0) + ' XP', 2500);
       }
 
       return quest;
@@ -439,6 +440,7 @@ const KnowledgeAcademy = {
       }
     }
 
+    if (typeof celebrate === 'function') celebrate('🎓', 'Lesson Complete!', '+' + lesson.xp + ' XP', 2000);
     return { success: true, xp: lesson.xp, unlock: lesson.unlock };
   },
 

@@ -997,6 +997,7 @@ window._doneSet = function(exIdx, sIdx) {
       ProgEngine.savePR(ex.name, w, r, today());
       toast('🏆 New PR on ' + ex.name + '!', 'pr', 5000);
       haptic([50, 50, 100]);
+      if (typeof celebrate === 'function') celebrate('🏆', 'New PR!', ex.name + ' · ' + w + 'kg × ' + r, 2200);
     } else {
       haptic(25);
     }
