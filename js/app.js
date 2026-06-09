@@ -12,17 +12,22 @@ window.reg = reg;
 function go(id, data) {
   try {
     if (!_screens[id]) throw new Error('Screen "' + id + '" not registered');
+    if (id !== _currentScreen && typeof haptic === 'function') haptic(10);
     _currentScreen = id;
     const html = _screens[id](data) || '';
     const v = document.getElementById('view');
     if (!v) return;
     v.scrollTop = 0;
     const div = document.createElement('div');
-    div.className = 'screen';
+    div.className = 'screen screen-enter';
     div.innerHTML = html;
-    v.innerHTML = '';
+    const prev = v.querySelector('.screen');
+    if (prev) {
+      prev.classList.add('screen-exit');
+      setTimeout(function() { if (prev.parentNode) prev.remove(); }, 220);
+    }
     v.appendChild(div);
-    div.style.animation = 'fadeUp 0.3s cubic-bezier(.22,1,.36,1) both';
+    requestAnimationFrame(function() { div.classList.add('screen-enter-active'); });
     const nav = document.getElementById('nav');
     const noNav = ['onboarding', 'intro', 'briefing'];
     if (nav) nav.style.display = noNav.includes(id) ? 'none' : 'flex';
@@ -820,6 +825,108 @@ const BodyEngine = {
     const diff = Math.abs((user.weight||75) - (user.goalWeight||70));
     const rate = (user.goal==='hypertrophy'||user.goal==='strength') ? 0.75 : 0.5;
     return Math.ceil(diff / (rate * 4.33)) + ' months';
+  },
+  _latestMeas() {
+    const m = S.g('measurements') || [];
+    return m.length ? m[m.length - 1] : null;
+  },
+  bodyFatNavy(user) {
+    const meas = this._latestMeas();
+    const heightCm = user.height || 175;
+    const gender = user.gender || 'male';
+    const neck = meas && meas.neck;
+    const waist = meas && meas.waist;
+    const hips = meas && meas.hips;
+    if (!neck || !waist) return { pct: null, status: 'needs_data', label: 'Add neck & waist measurements' };
+    const hIn = heightCm / 2.54;
+    const neckIn = neck / 2.54;
+    const waistIn = waist / 2.54;
+    let pct;
+    if (gender === 'female') {
+      if (!hips) return { pct: null, status: 'needs_data', label: 'Add hip measurement (female)' };
+      const hipIn = hips / 2.54;
+      pct = 163.205 * Math.log10(waistIn + hipIn - neckIn) - 97.684 * Math.log10(hIn) - 78.387;
+    } else {
+      pct = 86.010 * Math.log10(waistIn - neckIn) - 70.041 * Math.log10(hIn) + 36.76;
+    }
+    pct = round2(Math.max(3, Math.min(50, pct)));
+    let status = 'healthy', label = 'Healthy range';
+    if (gender === 'female') {
+      if (pct < 14) { status = 'low'; label = 'Essential fat range'; }
+      else if (pct < 21) { status = 'athletic'; label = 'Athletic'; }
+      else if (pct < 25) { status = 'healthy'; label = 'Fitness'; }
+      else if (pct < 32) { status = 'elevated'; label = 'Average'; }
+      else { status = 'high'; label = 'Above average'; }
+    } else {
+      if (pct < 6) { status = 'low'; label = 'Essential fat range'; }
+      else if (pct < 14) { status = 'athletic'; label = 'Athletic'; }
+      else if (pct < 18) { status = 'healthy'; label = 'Fitness'; }
+      else if (pct < 25) { status = 'elevated'; label = 'Average'; }
+      else { status = 'high'; label = 'Above average'; }
+    }
+    return { pct, status, label };
+  },
+  leanMass(user) {
+    const w = user.weight || 75;
+    const bf = this.bodyFatNavy(user);
+    const pct = bf.pct != null ? bf.pct : (user.targetBodyFat || 15);
+    return round2(w * (1 - pct / 100));
+  },
+  fatMass(user) {
+    const w = user.weight || 75;
+    const bf = this.bodyFatNavy(user);
+    const pct = bf.pct != null ? bf.pct : (user.targetBodyFat || 15);
+    return round2(w * pct / 100);
+  },
+  ffmi(user) {
+    const ffm = this.leanMass(user);
+    const hM = (user.height || 175) / 100;
+    const raw = round2(ffm / (hM * hM));
+    const norm = round2(raw + 6.1 * (1.8 - hM));
+    let status = 'average', label = 'Average';
+    if (norm < 18) { status = 'low'; label = 'Below average'; }
+    else if (norm < 20) { status = 'healthy'; label = 'Average'; }
+    else if (norm < 22) { status = 'athletic'; label = 'Above average'; }
+    else if (norm < 25) { status = 'elite'; label = 'Excellent'; }
+    else { status = 'high'; label = 'Elite range'; }
+    return { raw, normalized: norm, status, label };
+  },
+  waistToHeight(user) {
+    const meas = this._latestMeas();
+    const waist = meas && meas.waist;
+    const height = user.height || 175;
+    if (!waist) return { ratio: null, status: 'needs_data', label: 'Add waist measurement' };
+    const ratio = round2(waist / height);
+    let status = 'healthy', label = 'Low risk';
+    if (ratio >= 0.6) { status = 'high'; label = 'High risk'; }
+    else if (ratio >= 0.5) { status = 'elevated'; label = 'Elevated risk'; }
+    return { ratio, status, label };
+  },
+  proteinTarget(user) {
+    const kg = user.weight || 75;
+    const goal = user.goal || 'hypertrophy';
+    const mult = {
+      fat_loss: 2.2, hypertrophy: 2.0, strength: 2.0, weight_gain: 1.8,
+      recomp: 2.1, athletic: 1.9, maintenance: 1.6, general_health: 1.6,
+      endurance: 1.6, mobility: 1.5
+    };
+    const gPerKg = mult[goal] || 1.8;
+    return Math.round(kg * gPerKg);
+  },
+  waterIntake(user) {
+    const kg = user.weight || 75;
+    return Math.round(kg * 35);
+  },
+  calorieTarget(user) {
+    const tdee = this.tdee(user);
+    const goal = user.goal || 'hypertrophy';
+    if (goal === 'fat_loss') return TDEEEngine.deficitPlan(user).calories;
+    if (['hypertrophy', 'strength', 'weight_gain', 'athletic'].includes(goal)) return TDEEEngine.surplusPlan(user).calories;
+    if (goal === 'recomp') return tdee - 200;
+    return tdee;
+  },
+  oneRm(weight, reps) {
+    return ProgEngine.epley(weight, reps);
   }
 };
 window.BodyEngine = BodyEngine;
@@ -1251,6 +1358,90 @@ const TDEEEngine = {
 window.TDEEEngine = TDEEEngine;
 
 /* ══════════════════════════════════════════════════════
+   ENGINE — PERSONALIZED PLAN
+══════════════════════════════════════════════════════ */
+const PlanEngine = {
+  build(user) {
+    user = user || S.g('user') || {};
+    const rec = typeof SplitsDB !== 'undefined' ? SplitsDB.recommend(user) : { id: 'ppl', name: 'Push Pull Legs', reason: 'Balanced split', daysPerWeek: 4 };
+    const split = user.split || rec.id;
+    const splitInfo = typeof SplitsDB !== 'undefined' ? SplitsDB.byId(split) : null;
+    const splitName = splitInfo ? splitInfo.name : rec.name;
+    const splitReason = splitInfo ? splitInfo.desc : rec.reason;
+    const calories = BodyEngine.calorieTarget(user);
+    const protein = BodyEngine.proteinTarget(user);
+    const macros = TDEEEngine.macroSplit(user.goal || 'hypertrophy', calories);
+    const todayWorkout = SplitEngine.getSplitDay();
+    const readiness = ReadinessEngine.score();
+    const weekWkts = StreakEngine.weekWorkouts();
+    const weeklyGoal = user.weeklyGoal || rec.daysPerWeek || 4;
+    const weeklyFocus = [];
+    if (weekWkts.length < weeklyGoal) weeklyFocus.push((weeklyGoal - weekWkts.length) + ' more session' + (weeklyGoal - weekWkts.length > 1 ? 's' : '') + ' to hit weekly goal');
+    const soreMuscles = MuscleEngine.status().filter(m => m.status === 'sore').map(m => m.name);
+    if (soreMuscles.length) weeklyFocus.push('Let ' + soreMuscles.slice(0, 2).join(' & ') + ' recover');
+    if (!weeklyFocus.length) weeklyFocus.push('Stay consistent — you\'re on track this week');
+    const bodyStats = S.g('bodyStats') || [];
+    let bodyProgress = 'Log weight in Body tab to track progress';
+    if (bodyStats.length >= 2) {
+      const diff = round2(bodyStats[bodyStats.length - 1].weight - bodyStats[bodyStats.length - 2].weight);
+      const dir = diff > 0 ? '+' : '';
+      bodyProgress = dir + diff + 'kg since last weigh-in';
+    } else if (bodyStats.length === 1) {
+      bodyProgress = 'First weigh-in logged — keep tracking weekly';
+    }
+    const injuryAssess = typeof InjuriesDB !== 'undefined' ? InjuriesDB.assessActive() : { messages: [], shouldRest: false, count: 0 };
+    let injuryAdvisory = injuryAssess.count ? injuryAssess.messages.join('. ') : 'No active injury restrictions';
+    if (injuryAssess.shouldRest) injuryAdvisory = '⚠️ Rest recommended — ' + injuryAdvisory;
+    const equipmentConfigured = !!user.equipmentConfigured;
+    let readinessNote = readiness >= 80 ? 'High readiness — push intensity today' :
+      readiness >= 60 ? 'Moderate readiness — train as planned' :
+      readiness >= 40 ? 'Low readiness — consider lighter volume' : 'Recovery day recommended';
+    if (injuryAssess.shouldRest) readinessNote = 'Prioritize recovery over intensity';
+    const goalLabels = { hypertrophy: 'muscle gain', fat_loss: 'fat loss', strength: 'strength', weight_gain: 'mass gain', recomp: 'recomposition', maintenance: 'maintenance', athletic: 'performance', general_health: 'health' };
+    const message = this.heroMessage(user, { readiness, todayWorkout, splitName, calories, protein, injuryAssess });
+    return {
+      split: splitName,
+      splitId: split,
+      splitReason,
+      calorieTarget: calories,
+      protein,
+      carbs: macros.carbs,
+      fat: macros.fat,
+      todayWorkout,
+      weeklyFocus,
+      bodyProgress,
+      injuryAdvisory,
+      equipmentConfigured,
+      readinessNote,
+      readiness,
+      message,
+      goalLabel: goalLabels[user.goal] || user.goal || 'training'
+    };
+  },
+  heroMessage(user, ctx) {
+    ctx = ctx || {};
+    const name = (user.name || 'Athlete').split(' ')[0];
+    const workout = ctx.todayWorkout || SplitEngine.getSplitDay();
+    const readiness = ctx.readiness != null ? ctx.readiness : ReadinessEngine.score();
+    if (ctx.injuryAssess && ctx.injuryAssess.shouldRest) {
+      return name + ', your body needs recovery today. Light mobility or rest — injuries take priority.';
+    }
+    if (readiness < 40) {
+      return name + ', readiness is low (' + readiness + '/100). Active recovery or a light session beats forcing it.';
+    }
+    const session = workout.n || 'today\'s session';
+    const muscles = (workout.muscles || []).slice(0, 2).join(' & ');
+    const cal = ctx.calories || BodyEngine.calorieTarget(user);
+    const prot = ctx.protein || BodyEngine.proteinTarget(user);
+    if (readiness >= 80) {
+      return name + ', you\'re primed for ' + session + (muscles ? ' (' + muscles + ')' : '') + '. Target ' + cal + ' kcal · ' + prot + 'g protein.';
+    }
+    return name + ', ' + session + ' is on deck' + (muscles ? ' — focus ' + muscles : '') + '. ' + (ctx.splitName || '') + ' · ' + cal + ' kcal/day.';
+  }
+};
+window.PlanEngine = PlanEngine;
+
+/* ══════════════════════════════════════════════════════
    NAV
 ══════════════════════════════════════════════════════ */
 const CORE_NAV_DEFAULT = ['dashboard', 'workout', 'hub', 'bodymap', 'settings'];
@@ -1294,7 +1485,7 @@ function buildNav() {
   const ids = _getNavTabIds();
   const tabs = ids.map(function(id) { return DEFAULT_NAV_TABS.find(function(t) { return t.id === id; }); }).filter(Boolean);
   nav.innerHTML = tabs.map(function(t) {
-    return '<button class="nb" id="nb-'+t.id+'" onclick="go(\''+t.id+'\')">' +
+    return '<button class="nb press" id="nb-'+t.id+'" onclick="go(\''+t.id+'\');haptic(12)">' +
       t.icon + '<span>'+t.label+'</span></button>';
   }).join('');
 }

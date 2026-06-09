@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'fos-v16';
+const CACHE = 'fos-v17';
 const ASSETS = [
   './',
   './index.html',
@@ -18,6 +18,7 @@ const ASSETS = [
   './js/modules/workout.js',
   './js/data/exercise-library.js',
   './js/modules/bodymap.js',
+  './js/modules/calculators.js',
   './js/modules/coach.js',
   './js/modules/progress.js',
   './js/modules/nutrition.js',

@@ -70,6 +70,23 @@ function _tabProfile(u) {
       {v:'sedentary',l:'Sedentary'},{v:'light',l:'Light Active'},{v:'moderate',l:'Moderately Active'},{v:'active',l:'Very Active'},{v:'veryActive',l:'Extremely Active'}
     ]) +
 
+    _sectionTitle('Your Plan') +
+    (function() {
+      const plan = typeof PlanEngine !== 'undefined' ? PlanEngine.build(u) : null;
+      if (!plan) return '';
+      return '<div style="background:linear-gradient(135deg,rgba(0,213,255,0.08),rgba(123,95,255,0.06));border:1px solid rgba(0,213,255,0.15);border-radius:14px;padding:14px;margin-bottom:16px">' +
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--c1);margin-bottom:8px">📋 Plan Snapshot</div>' +
+        '<div style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:6px">' + esc(plan.split) + '</div>' +
+        '<div style="font-size:12px;color:var(--txt3);line-height:1.5;margin-bottom:10px">' + esc(plan.readinessNote) + '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
+        _infoStat('Calories', plan.calorieTarget + '', 'kcal/day') +
+        _infoStat('Protein', plan.protein + '', 'g/day') +
+        _infoStat('Readiness', plan.readiness + '', '/100') +
+        '</div>' +
+        '<button class="btn btn-secondary btn-sm" onclick="go(\'calculators\')" style="width:100%;margin-top:10px">📊 Full Calculators</button>' +
+        '</div>';
+    })() +
+
     _sectionTitle('Calculated Metrics') +
     '<div class="card card-solid" style="margin-top:8px">' +
     '<div style="display:flex;flex-wrap:wrap;gap:12px">' +
@@ -297,7 +314,7 @@ function _tabData() {
     '<div style="display:flex;flex-wrap:wrap;gap:12px">' +
     _infoStat('Workouts', String(ws.length), 'logged') +
     _infoStat('Member since', joinDate ? new Date(joinDate).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '—', '') +
-    _infoStat('Version', 'v4.0', 'FitnessOS') +
+    _infoStat('Version', 'v4.4', 'FitnessOS') +
     '</div></div>' +
 
     _sectionTitle('Profiles') +

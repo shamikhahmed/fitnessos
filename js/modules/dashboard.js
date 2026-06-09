@@ -41,6 +41,7 @@ reg('dashboard', function() {
       '</div></div>';
 
     /* ── HERO CARD ── */
+    const plan = typeof PlanEngine !== 'undefined' ? PlanEngine.build(user) : null;
     const dd = typeof DailyDecision !== 'undefined' ? DailyDecision.decide() : null;
     const debtVal = (function() {
       try { return typeof RecoveryDebtEngine !== 'undefined' ? RecoveryDebtEngine.calculate() : 0; } catch(e) { return 0; }
@@ -64,33 +65,33 @@ reg('dashboard', function() {
       '<text x="26" y="30" text-anchor="middle" font-size="12" font-weight="800" fill="' + scoreColor + '">' + score + '</text>' +
       '</svg>';
     const heroTap = (dd && (dd.type || dd.title || '').toLowerCase().match(/rest|recover|light/)) ? 'recovery-debt' : 'body-intelligence';
-    const heroCard = '<div onclick="go(\'' + heroTap + '\')" style="margin:0 16px 14px;border-radius:24px;background:' + heroGrad + ';border:1px solid var(--border);padding:18px 20px;cursor:pointer;touch-action:manipulation">' +
-      '<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">' +
-      '<div style="font-size:48px;line-height:1;flex-shrink:0">' + (dd ? dd.emoji : '💪') + '</div>' +
+    const heroCard = '<div onclick="go(\'' + heroTap + '\')" class="card-press" style="margin:0 16px 20px;border-radius:16px;background:' + heroGrad + ';border:1px solid var(--border);padding:22px 20px;cursor:pointer;touch-action:manipulation;box-shadow:var(--ds2)">' +
+      '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px">' +
+      '<div style="font-size:52px;line-height:1;flex-shrink:0">' + (dd ? dd.emoji : '💪') + '</div>' +
       '<div style="flex:1;min-width:0">' +
-      '<div style="font-size:20px;font-weight:800;color:var(--txt);line-height:1.2">' + esc(dd ? dd.title : 'Ready to Train') + '</div>' +
-      '<div style="font-size:12px;color:var(--txt3);margin-top:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + esc(dd ? (dd.reason || (dd.actions && dd.actions[0]) || '') : 'Tap to see your recommendation') + '</div>' +
+      '<div style="font-size:22px;font-weight:800;color:var(--txt);line-height:1.25;letter-spacing:-0.4px">' + esc(dd ? dd.title : (plan ? splitDay.n || 'Ready to Train' : 'Ready to Train')) + '</div>' +
+      '<div style="font-size:13px;color:var(--txt2);margin-top:8px;line-height:1.5">' + esc(plan ? plan.message : (dd ? (dd.reason || (dd.actions && dd.actions[0]) || '') : 'Tap to see your recommendation')) + '</div>' +
       '</div>' +
       scoreArc +
       '</div>' +
-      '<div style="display:flex;gap:8px">' +
-      '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:8px;text-align:center">' +
-      '<div style="font-size:13px;font-weight:800;color:' + scoreColor + '">' + score + '/100</div>' +
-      '<div style="font-size:9px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:2px">Readiness</div>' +
+      '<div style="display:flex;gap:10px">' +
+      '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:16px;padding:10px;text-align:center">' +
+      '<div style="font-size:14px;font-weight:800;color:' + scoreColor + '">' + score + '/100</div>' +
+      '<div style="font-size:9px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:3px">Readiness</div>' +
       '</div>' +
-      '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:8px;text-align:center">' +
-      '<div style="font-size:13px;font-weight:800;color:var(--c4)">' + debtVal + '</div>' +
-      '<div style="font-size:9px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:2px">Debt</div>' +
+      '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:16px;padding:10px;text-align:center">' +
+      '<div style="font-size:14px;font-weight:800;color:var(--c4)">' + debtVal + '</div>' +
+      '<div style="font-size:9px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:3px">Debt</div>' +
       '</div>' +
-      '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:8px;text-align:center">' +
-      '<div style="font-size:13px;font-weight:800;color:var(--c5)">' + streak + ' 🔥</div>' +
-      '<div style="font-size:9px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:2px">Streak</div>' +
+      '<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:16px;padding:10px;text-align:center">' +
+      '<div style="font-size:14px;font-weight:800;color:var(--c5)">' + streak + ' 🔥</div>' +
+      '<div style="font-size:9px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:3px">Streak</div>' +
       '</div>' +
       '</div>' +
       '</div>';
 
     /* ── QUICK ACTIONS ── */
-    const quickActions = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px;margin-bottom:14px">' +
+    const quickActions = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px;margin-bottom:20px">' +
       '<button onclick="go(\'workout\')" class="press" style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%">' +
       '<span style="font-size:26px">💪</span>' +
       '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--txt3)">Start</span>' +
@@ -110,7 +111,7 @@ reg('dashboard', function() {
       '</div>';
 
     /* ── TODAY'S WORKOUT ── */
-    const todayWorkout = '<div style="margin:0 16px 14px;border-radius:20px;background:var(--grad);padding:16px 18px;position:relative;overflow:hidden">' +
+    const todayWorkout = '<div style="margin:0 16px 20px;border-radius:16px;background:var(--grad);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--ds2)">' +
       '<div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>' +
       '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.7);margin-bottom:4px">Today\'s Session</div>' +
       '<div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:2px">' + esc(splitDay.n || 'Rest & Recover') + '</div>' +
@@ -121,26 +122,7 @@ reg('dashboard', function() {
       '<button onclick="startWorkout&&startWorkout()" style="width:100%;padding:11px;border-radius:12px;background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.3);color:#fff;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">▶ Start Workout</button>' +
       '</div>';
 
-    /* ── RECOVERY SNAPSHOT ── */
-    const debtColor = debtVal >= 70 ? 'var(--c4)' : debtVal >= 40 ? 'var(--c5)' : 'var(--c3)';
-    const readinessLabel = score >= 80 ? 'Peak' : score >= 60 ? 'Good' : score >= 40 ? 'Fair' : 'Low';
-    const recoverySnapshot = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px;margin-bottom:14px">' +
-      '<div onclick="go(\'recovery-debt\')" style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center;cursor:pointer;touch-action:manipulation">' +
-      '<div style="width:8px;height:8px;border-radius:50%;background:' + debtColor + ';margin:0 auto 6px"></div>' +
-      '<div style="font-size:26px;font-weight:900;color:' + debtColor + ';line-height:1">' + debtVal + '</div>' +
-      '<div style="font-size:10px;color:var(--txt3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Rec. Debt</div>' +
-      '</div>' +
-      '<div onclick="go(\'body-intelligence\')" style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center;cursor:pointer;touch-action:manipulation">' +
-      '<div style="width:8px;height:8px;border-radius:50%;background:' + scoreColor + ';margin:0 auto 6px"></div>' +
-      '<div style="font-size:26px;font-weight:900;color:' + scoreColor + ';line-height:1">' + score + '</div>' +
-      '<div style="font-size:10px;color:var(--txt3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">' + readinessLabel + '</div>' +
-      '</div>' +
-      '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center">' +
-      '<div style="font-size:16px;margin-bottom:2px">🔥</div>' +
-      '<div style="font-size:26px;font-weight:900;color:var(--c5);line-height:1">' + streak + '</div>' +
-      '<div style="font-size:10px;color:var(--txt3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Streak</div>' +
-      '</div>' +
-      '</div>';
+    /* Recovery stats now live in hero card — skip duplicate grid */
 
     /* ── MUSCLE RECOVERY MINI ── */
     const trainedMuscles = muscles
@@ -287,9 +269,9 @@ reg('dashboard', function() {
       '<button class="btn btn-primary btn-sm" onclick="applySuggestedSplit()">Use this split</button> ' +
       '<button class="btn btn-ghost btn-sm" onclick="go(\'settings\',{tab:\'training\'})">Choose another</button></div>' : '';
 
-    return demoBanner + topbar + weightPrompt + injuryBanner + setupBanner + splitBanner + briefingCard + heroCard + quickActions + todayWorkout + recoverySnapshot +
-      muscleRecoveryMini + activeQuestCard + progressSnapshot + lastWktCard + exploreCta +
-      '<div style="height:12px"></div>';
+    return demoBanner + topbar + weightPrompt + injuryBanner + setupBanner + splitBanner + briefingCard + heroCard + quickActions + todayWorkout +
+      activeQuestCard + lastWktCard + exploreCta +
+      '<div style="height:24px"></div>';
 
   } catch(e) {
     console.error('dashboard', e);

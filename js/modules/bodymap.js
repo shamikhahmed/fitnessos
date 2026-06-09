@@ -17,8 +17,19 @@ reg('bodymap', function() {
     '<div><div class="topbar-title">Body Map</div>' +
     '<div class="topbar-date">Recovery & measurements</div></div>' +
     '<div class="topbar-right">' +
+    '<button class="topbar-icon press" onclick="go(\'calculators\')">📊</button>' +
     '<button class="topbar-icon press" onclick="go(\'progress\')">📈</button>' +
     '</div></div>' +
+
+    '<div style="padding:0 16px 14px">' +
+    '<button onclick="go(\'calculators\')" class="press" style="width:100%;display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:18px;border:1px solid rgba(0,213,255,0.25);background:linear-gradient(135deg,rgba(0,213,255,0.12),rgba(123,95,255,0.08));cursor:pointer;touch-action:manipulation;text-align:left">' +
+    '<div style="font-size:32px;line-height:1">📊</div>' +
+    '<div style="flex:1;min-width:0">' +
+    '<div style="font-size:15px;font-weight:800;color:var(--txt)">Calculators</div>' +
+    '<div style="font-size:12px;color:var(--txt3);margin-top:2px">Body fat, macros, FFMI, 1RM & more</div>' +
+    '</div>' +
+    '<div style="font-size:18px;color:var(--c1)">›</div>' +
+    '</button></div>' +
 
     _bodyMapSection(muscleColors) +
     _muscleStatusGrid(muscleStatus) +

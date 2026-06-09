@@ -1,0 +1,108 @@
+'use strict';
+/* ── FitnessOS v4.4 — Body Calculators ── */
+
+const _CAL_STATUS_COLORS = {
+  healthy: '#30d158', athletic: '#00d5ff', elite: '#6b5fff',
+  average: '#f5c842', elevated: '#ff9f0a', high: '#ff453a',
+  low: '#ff9f0a', needs_data: 'var(--txt3)'
+};
+
+function _calMetric(label, value, sub, status) {
+  const col = _CAL_STATUS_COLORS[status] || 'var(--txt)';
+  return '<div style="background:var(--bg4);border-radius:14px;padding:14px;border:1px solid var(--border)">' +
+    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:6px">' + esc(label) + '</div>' +
+    '<div style="font-size:22px;font-weight:800;color:' + col + ';line-height:1.1">' + value + '</div>' +
+    (sub ? '<div style="font-size:11px;color:var(--txt3);margin-top:4px">' + esc(sub) + '</div>' : '') +
+    '</div>';
+}
+
+function _calcData() {
+  const user = S.g('user') || {};
+  const bmi = BodyEngine.bmi(user.weight || 75, user.height || 175);
+  const bf = BodyEngine.bodyFatNavy(user);
+  const ffm = BodyEngine.ffmi(user);
+  const wth = BodyEngine.waistToHeight(user);
+  const lean = BodyEngine.leanMass(user);
+  const fat = BodyEngine.fatMass(user);
+  const bmr = BodyEngine.bmr(user);
+  const tdee = BodyEngine.tdee(user);
+  const cals = BodyEngine.calorieTarget(user);
+  const protein = BodyEngine.proteinTarget(user);
+  const water = BodyEngine.waterIntake(user);
+  const macros = TDEEEngine.macroSplit(user.goal || 'hypertrophy', cals);
+  const prs = S.g('prs') || [];
+  const topPr = prs.length ? prs.slice().sort(function(a, b) { return (b.e1rm || 0) - (a.e1rm || 0); })[0] : null;
+  const healthyWt = BodyEngine.healthyWeightRange(user.height || 175, user.gender || 'male');
+  return { user, bmi, bf, ffm, wth, lean, fat, bmr, tdee, cals, protein, water, macros, topPr, healthyWt };
+}
+
+reg('calculators', function() {
+  const d = _calcData();
+  const u = d.user;
+  const units = u.units === 'imperial' ? 'lb' : 'kg';
+
+  const bfVal = d.bf.pct != null ? d.bf.pct + '%' : '—';
+  const wthVal = d.wth.ratio != null ? d.wth.ratio : '—';
+
+  const strengthSection = d.topPr ?
+    _calMetric('Top 1RM', d.topPr.e1rm + ' ' + units, d.topPr.exercise + ' · ' + d.topPr.weight + units + '×' + d.topPr.reps, 'athletic') +
+    _calMetric('Epley Formula', 'w × (1 + r/30)', 'Same as workout PR engine', 'average') :
+    _calMetric('Top 1RM', '—', 'Log workouts to see estimates', 'needs_data') +
+    _calMetric('Epley', BodyEngine.oneRm(100, 5) + ' kg', 'Example: 100kg × 5 reps', 'average');
+
+  return '<div class="topbar">' +
+    '<div><div class="topbar-title">Calculators</div>' +
+    '<div class="topbar-date">Personalized body metrics</div></div>' +
+    '<div class="topbar-right">' +
+    '<button class="topbar-icon press" onclick="go(\'bodymap\')">🫀</button>' +
+    '</div></div>' +
+
+    '<div style="padding:0 16px 14px">' +
+    '<div style="background:linear-gradient(135deg,rgba(0,213,255,0.1),rgba(123,95,255,0.08));border:1px solid rgba(0,213,255,0.2);border-radius:18px;padding:16px;margin-bottom:14px">' +
+    '<div style="font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:12px">Metrics use your profile, latest measurements, and training goal. Tap recalculate after logging new data.</div>' +
+    '<button class="btn btn-primary btn-sm" onclick="recalcCalculators()" style="width:100%">↻ Recalculate</button>' +
+    '</div></div>' +
+
+    sh('Body Composition') +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 14px">' +
+    _calMetric('Body Fat (Navy)', bfVal, d.bf.label, d.bf.status) +
+    _calMetric('Lean Mass', d.lean + ' kg', 'Fat-free mass estimate', d.bf.status === 'needs_data' ? 'needs_data' : 'healthy') +
+    _calMetric('Fat Mass', d.fat + ' kg', 'From body fat %', d.bf.status === 'needs_data' ? 'needs_data' : 'average') +
+    _calMetric('FFMI', d.ffm.normalized, 'Normalized · ' + d.ffm.label, d.ffm.status) +
+    _calMetric('Waist-to-Height', wthVal, d.wth.label, d.wth.status) +
+    _calMetric('BMI', d.bmi.bmi, d.bmi.cat, d.bmi.bmi < 18.5 ? 'low' : d.bmi.bmi < 25 ? 'healthy' : d.bmi.bmi < 30 ? 'elevated' : 'high') +
+    _calMetric('Healthy Weight', d.healthyWt.min + '–' + d.healthyWt.max + ' kg', 'For your height', 'healthy') +
+    '</div>' +
+
+    sh('Energy') +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 14px">' +
+    _calMetric('BMR', d.bmr + ' kcal', 'At rest', 'average') +
+    _calMetric('TDEE', d.tdee + ' kcal', 'Maintenance', 'healthy') +
+    _calMetric('Calorie Target', d.cals + ' kcal', (u.goal || 'hypertrophy').replace(/_/g, ' '), 'athletic') +
+    _calMetric('Time to Goal', BodyEngine.timeToGoal(u), 'Estimated', 'average') +
+    '</div>' +
+
+    sh('Nutrition') +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 14px">' +
+    _calMetric('Protein', d.protein + ' g/day', '1.6–2.2 g/kg by goal', 'healthy') +
+    _calMetric('Carbs', d.macros.carbs + ' g/day', 'Macro split', 'average') +
+    _calMetric('Fat', d.macros.fat + ' g/day', 'Macro split', 'average') +
+    _calMetric('Water', (d.water / 1000).toFixed(1) + ' L/day', '~35 ml/kg', 'healthy') +
+    '</div>' +
+
+    sh('Strength') +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 14px">' +
+    strengthSection +
+    '</div>' +
+
+    '<div style="padding:0 16px 14px">' +
+    '<button class="btn btn-secondary" onclick="go(\'bodymap\')" style="width:100%">📏 Log Measurements in Body Tab</button>' +
+    '</div>' +
+    '<div style="height:20px"></div>';
+});
+
+window.recalcCalculators = function() {
+  if (window._cache) delete window._cache['plan'];
+  toast('Metrics recalculated', 'ok');
+  go('calculators');
+};

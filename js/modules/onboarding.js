@@ -377,17 +377,26 @@ const OB_STEPS = {
     const goals = { hypertrophy:'Build Muscle', fat_loss:'Lose Fat', weight_gain:'Gain Weight', general_health:'Get Healthier', recomp:'Recomposition', athletic:'Athletic', strength:'Strength', endurance:'Cardio', mobility:'Mobility', maintenance:'Maintain' };
     const cName = coaches[u.personality||'maya'] || 'Maya';
     const cEmoji = { alex:'🔥', maya:'🧪', sam:'⚡', zen:'🧘', rex:'💪' }[u.personality||'maya'] || '🧪';
-    const rec = typeof SplitsDB !== 'undefined' ? SplitsDB.recommend({ goal: u.goal, exp: u.exp }) : { name: 'Push Pull Legs', reason: 'Balanced hypertrophy split', daysPerWeek: 4 };
+    const draftUser = {
+      name: name, goal: u.goal || 'hypertrophy', exp: u.exp || 'intermediate',
+      gender: u.gender || 'male', age: parseInt(u.age) || 25, height: parseFloat(u.height) || 175,
+      weight: parseFloat(u.weight) || 75, goalWeight: parseFloat(u.goalWeight) || 70,
+      activityLevel: 'moderate', equipmentConfigured: false
+    };
+    const plan = typeof PlanEngine !== 'undefined' ? PlanEngine.build(draftUser) : null;
+    const rec = typeof SplitsDB !== 'undefined' ? SplitsDB.recommend(draftUser) : { name: 'Push Pull Legs', reason: 'Balanced hypertrophy split', daysPerWeek: 4 };
     return '<div class="ob-screen">' + _dots(7) +
       '<div style="text-align:center;padding:24px 0 20px">' +
-      '<div style="font-size:64px;margin-bottom:16px">'+cEmoji+'</div>' +
-      '<div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px">Ready, '+esc(name)+'!</div>' +
-      '<div style="font-size:15px;color:rgba(255,255,255,0.65);margin-top:8px">We\'ll suggest your split & equipment on Home.</div>' +
+      '<div style="font-size:64px;margin-bottom:16px">📋</div>' +
+      '<div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px">Your Plan</div>' +
+      '<div style="font-size:15px;color:rgba(255,255,255,0.65);margin-top:8px">Ready, '+esc(name)+' — here\'s your starting point.</div>' +
       '</div>' +
       '<div class="card card-solid" style="margin:0 0 14px">' +
       _summaryRow('🎯','Goal', goals[u.goal||'hypertrophy'] || '—') +
-      _summaryRow('📅','Suggested split', rec.name + ' (' + rec.daysPerWeek + 'd/wk)') +
-      _summaryRow('💡','Why', rec.reason) +
+      _summaryRow('📅','Split', plan ? plan.split + ' (' + (draftUser.weeklyGoal || rec.daysPerWeek) + 'd/wk)' : rec.name) +
+      _summaryRow('🔥','Calories', plan ? plan.calorieTarget + ' kcal/day' : '—') +
+      _summaryRow('🥩','Protein', plan ? plan.protein + ' g/day' : '—') +
+      _summaryRow('💡','Why', plan ? plan.splitReason : rec.reason) +
       _summaryRow('⚡','Coach', cName) +
       '</div>' +
       '<div class="ob-body">' +
