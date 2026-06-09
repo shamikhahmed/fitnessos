@@ -29,13 +29,24 @@ reg('equipment-setup', function() {
     cats.map(c => '<button onclick="_eqFilter=\'' + c + '\';go(\'equipment-setup\')" style="flex-shrink:0;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid ' + (_eqFilter === c ? 'var(--c1)' : 'var(--border)') + ';background:' + (_eqFilter === c ? 'var(--c1)' : 'transparent') + ';color:' + (_eqFilter === c ? '#fff' : 'var(--txt3)') + ';cursor:pointer">' + (catLabels[c] || c) + '</button>').join('') +
     '</div>';
 
+  const brandColors = {
+    'Life Fitness': '#c8102e',
+    'Hammer Strength': '#f5c842',
+    'Technogym': '#0066cc',
+    'Precor': '#00843d',
+    'Matrix': '#111111',
+    'Cybex': '#005eb8'
+  };
+
   const rows = items.map(item => {
     const on = selected.includes(item.id);
-    const sub = [item.brand, item.category].filter(Boolean).join(' · ');
+    const badge = item.brand ?
+      '<span style="display:inline-block;font-size:9px;font-weight:800;padding:2px 7px;border-radius:6px;margin-top:5px;letter-spacing:0.04em;text-transform:uppercase;background:' + (brandColors[item.brand] || 'var(--c1)') + '22;color:' + (brandColors[item.brand] || 'var(--c1)') + ';border:1px solid ' + (brandColors[item.brand] || 'var(--c1)') + '44">' + esc(item.brand) + '</span>' : '';
     return '<div onclick="toggleEquipment(\'' + item.id + '\')" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;touch-action:manipulation">' +
       '<div style="width:26px;height:26px;border-radius:8px;border:2px solid ' + (on ? 'var(--c1)' : 'var(--border)') + ';background:' + (on ? 'var(--c1)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700">' + (on ? '✓' : '') + '</div>' +
       '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--txt)">' + esc(item.name) + '</div>' +
-      (sub ? '<div style="font-size:11px;color:var(--txt3);margin-top:2px">' + esc(sub) + '</div>' : '') + '</div></div>';
+      (badge || (item.category ? '<div style="font-size:11px;color:var(--txt3);margin-top:2px">' + esc(item.category.replace('_', ' ')) + '</div>' : '')) +
+      '</div></div>';
   }).join('');
 
   return '<div class="topbar"><button onclick="go(\'settings\',{tab:\'training\'})" style="background:none;border:none;color:var(--c1);font-size:15px;cursor:pointer;padding:0 16px">← Back</button>' +
@@ -65,6 +76,7 @@ window.setTrainEnv = function(env) {
 };
 
 window.toggleEquipment = function(id) {
+  haptic(12);
   const cur = (S.g('user.equipmentIds') || []).slice();
   const idx = cur.indexOf(id);
   if (id === 'none') {

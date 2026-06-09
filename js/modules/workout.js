@@ -916,9 +916,13 @@ reg('active', function() {
 
     const noteVal = _wktNotes[ex.name] || '';
 
+    const mediaThumb = (typeof ExerciseLibrary !== 'undefined' ? ExerciseLibrary.getMedia(exData || ex.name).thumb : null);
+
     return '<div class="ex-card' + (allDone?' done':'') + '" id="ex-card-'+exIdx+'">' +
       '<div class="ex-card-header">' +
-      '<div style="font-size:28px;width:40px;text-align:center;transition:all 0.3s">'+(allDone?'✅':(exData?exData.em:'💪'))+'</div>' +
+      (mediaThumb && !_focusMode ?
+        '<div style="width:44px;height:44px;border-radius:12px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;background:var(--bg4)"><img src="'+esc(mediaThumb)+'" alt="" style="width:100%;height:100%;object-fit:cover"/></div>' :
+        '<div style="font-size:28px;width:40px;text-align:center;transition:all 0.3s">'+(allDone?'✅':(exData?exData.em:'💪'))+'</div>') +
       '<div style="flex:1;min-width:0">' +
       '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
       '<div style="font-size:15px;font-weight:700;color:var(--txt)">'+esc(ex.name)+'</div>' +
@@ -1323,6 +1327,8 @@ function showExerciseDetail(name) {
   const techs = GUIDANCE.techniques(goal);
 
   const html =
+    (typeof ExerciseLibrary !== 'undefined' ? ExerciseLibrary.mediaHTML(ex, { height: 180 }) : '') +
+
     '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">' +
     '<div style="font-size:48px">'+ex.em+'</div>' +
     '<div>' +

@@ -113,9 +113,26 @@ js/
     settings.js     — 6-tab settings screen
     profiles.js     — Profile switcher, demo mode
     onboarding.js   — 12-step onboarding + 4 intro slides
-sw.js               — Service worker (cache: fos-v6)
+sw.js               — Service worker (cache: fos-v17)
 manifest.json       — PWA manifest
 ```
+
+---
+
+## Roadmap
+
+High-value features that fit FitnessOS’s workout-first, offline-first, Apple-native direction:
+
+1. **Apple Watch companion** — rest timer, set logging, and heart-rate-aware readiness synced via local QR/handoff (no cloud required).
+2. **True AR physique overlay** — camera body-segmentation with measurement-calibrated muscle highlight (extends v4.4 preview).
+3. **Offline video cache** — download wger/YouTube form clips during library sync for airplane-mode workouts.
+4. **Periodisation planner** — mesocycle blocks with auto-deload tied to recovery debt and PR velocity.
+5. **Gym floor mode** — extra-large tap targets, always-on display, haptic-only rest alerts for busy commercial gyms.
+6. **HealthKit / Google Fit import** — sleep, steps, and weight pull to enrich readiness without manual check-ins.
+7. **Plate calculator & bar math** — per-gym plate inventory (kg/lb) with visual loading diagram.
+8. **Workout templates marketplace** — share/import JSON programs peer-to-peer (AirDrop-style) with no server.
+9. **Voice set logging** — hands-free “135 for 8” parsing during compounds with spotter present.
+10. **Progress photo timeline** — side-by-side physique photos aligned to measurement logs and archetype targets.
 
 ---
 

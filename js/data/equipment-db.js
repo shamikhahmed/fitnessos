@@ -58,17 +58,35 @@ window.EquipmentDB = {
     { id: 'lf_leg_curl', name: 'Life Fitness Leg Curl', brand: 'Life Fitness', category: 'legs', eqTags: ['machine'], env: ['gym'] },
     { id: 'lf_shoulder_press', name: 'Life Fitness Shoulder Press', brand: 'Life Fitness', category: 'machines', eqTags: ['machine'], env: ['gym'] },
     { id: 'lf_row', name: 'Life Fitness Seated Row', brand: 'Life Fitness', category: 'machines', eqTags: ['machine','cables'], env: ['gym'] },
+    { id: 'lf_pec_deck', name: 'Life Fitness Pec Deck', brand: 'Life Fitness', category: 'machines', eqTags: ['machine'], env: ['gym'] },
+    { id: 'lf_hack_squat', name: 'Life Fitness Hack Squat', brand: 'Life Fitness', category: 'legs', eqTags: ['machine'], env: ['gym'] },
+    { id: 'lf_assist_dip', name: 'Life Fitness Assist Dip/Chin', brand: 'Life Fitness', category: 'bodyweight', eqTags: ['bar','machine'], env: ['gym'] },
+    { id: 'lf_smith', name: 'Life Fitness Smith Machine', brand: 'Life Fitness', category: 'racks', eqTags: ['smith','barbell','machine'], env: ['gym'] },
+    { id: 'lf_treadmill', name: 'Life Fitness Treadmill', brand: 'Life Fitness', category: 'cardio', eqTags: [], cardio: true, env: ['gym'] },
 
     /* Hammer Strength */
     { id: 'hs_chest_press', name: 'Hammer Strength Chest Press', brand: 'Hammer Strength', category: 'machines', eqTags: ['machine'], env: ['gym'] },
     { id: 'hs_incline_press', name: 'Hammer Strength Incline Press', brand: 'Hammer Strength', category: 'machines', eqTags: ['machine'], env: ['gym'] },
     { id: 'hs_row', name: 'Hammer Strength Row', brand: 'Hammer Strength', category: 'machines', eqTags: ['machine'], env: ['gym'] },
     { id: 'hs_leg_press', name: 'Hammer Strength Plate-Loaded Leg Press', brand: 'Hammer Strength', category: 'legs', eqTags: ['legpress','machine'], env: ['gym'] },
+    { id: 'hs_decline_press', name: 'Hammer Strength Decline Press', brand: 'Hammer Strength', category: 'machines', eqTags: ['machine'], env: ['gym'] },
+    { id: 'hs_shoulder_press', name: 'Hammer Strength Shoulder Press', brand: 'Hammer Strength', category: 'machines', eqTags: ['machine'], env: ['gym'] },
+    { id: 'hs_lat_pulldown', name: 'Hammer Strength Lat Pulldown', brand: 'Hammer Strength', category: 'cables', eqTags: ['cables','machine'], env: ['gym'] },
+    { id: 'hs_leg_ext', name: 'Hammer Strength Leg Extension', brand: 'Hammer Strength', category: 'legs', eqTags: ['machine'], env: ['gym'] },
+    { id: 'hs_leg_curl', name: 'Hammer Strength Lying Leg Curl', brand: 'Hammer Strength', category: 'legs', eqTags: ['machine'], env: ['gym'] },
+    { id: 'hs_glute_drive', name: 'Hammer Strength Glute Drive', brand: 'Hammer Strength', category: 'legs', eqTags: ['machine'], env: ['gym'] },
 
     /* Technogym */
     { id: 'tg_chest_press', name: 'Technogym Chest Press', brand: 'Technogym', category: 'machines', eqTags: ['machine'], env: ['gym'] },
     { id: 'tg_lat_machine', name: 'Technogym Lat Machine', brand: 'Technogym', category: 'cables', eqTags: ['cables','machine'], env: ['gym'] },
     { id: 'tg_leg_press', name: 'Technogym Leg Press', brand: 'Technogym', category: 'legs', eqTags: ['legpress','machine'], env: ['gym'] },
+    { id: 'tg_shoulder_press', name: 'Technogym Shoulder Press', brand: 'Technogym', category: 'machines', eqTags: ['machine'], env: ['gym'] },
+    { id: 'tg_row', name: 'Technogym Low Row', brand: 'Technogym', category: 'machines', eqTags: ['machine','cables'], env: ['gym'] },
+    { id: 'tg_leg_ext', name: 'Technogym Leg Extension', brand: 'Technogym', category: 'legs', eqTags: ['machine'], env: ['gym'] },
+    { id: 'tg_leg_curl', name: 'Technogym Leg Curl', brand: 'Technogym', category: 'legs', eqTags: ['machine'], env: ['gym'] },
+    { id: 'tg_cable_station', name: 'Technogym Dual Adjustable Pulley', brand: 'Technogym', category: 'cables', eqTags: ['cables'], env: ['gym'] },
+    { id: 'tg_smith', name: 'Technogym Smith Machine', brand: 'Technogym', category: 'racks', eqTags: ['smith','barbell','machine'], env: ['gym'] },
+    { id: 'tg_bike', name: 'Technogym Bike', brand: 'Technogym', category: 'cardio', eqTags: [], cardio: true, env: ['gym'] },
 
     /* Precor / Matrix / Cybex generics */
     { id: 'precor_elliptical', name: 'Precor Elliptical', brand: 'Precor', category: 'cardio', eqTags: [], cardio: true, env: ['gym'] },

@@ -259,6 +259,158 @@ const ProportionAnalyzer = {
 window.ProportionAnalyzer = ProportionAnalyzer;
 
 /* ══════════════════════════════════════════════════════
+   PHYSIQUE PREVIEW — measurement-driven SVG body
+══════════════════════════════════════════════════════ */
+const PhysiquePreview = {
+
+  _scale(current, target, neutral) {
+    if (!current || !target) return neutral || 1;
+    var ratio = current / target;
+    return Math.max(0.82, Math.min(1.18, 0.7 + ratio * 0.3));
+  },
+
+  scalesFromMeasurements(m, height, archetype) {
+    height = height || 175;
+    var targets = archetype && archetype.targetMeasurements ? archetype.targetMeasurements : {};
+    var t = function(key) {
+      var def = targets[key];
+      return def && def.formula ? def.formula(height) : null;
+    };
+    return {
+      shoulders: this._scale(m && m.shoulders, t('shoulders'), 1),
+      chest: this._scale(m && m.chest, t('chest'), 1),
+      waist: m && m.waist ? Math.max(0.78, Math.min(1.12, (t('waist') || m.waist) / m.waist)) : 1,
+      arms: this._scale(m && (m.arms || m.leftArm), t('arms'), 1),
+      thighs: this._scale(m && m.thighs, t('thighs'), 1),
+      calves: this._scale(m && m.calves, t('calves'), 1),
+      neck: this._scale(m && m.neck, t('neck'), 1)
+    };
+  },
+
+  bodySVG(scales, opts) {
+    opts = opts || {};
+    var color = opts.color || 'rgba(0,213,255,0.55)';
+    var stroke = opts.stroke || 'rgba(255,255,255,0.22)';
+    var uid = 'pp' + Math.random().toString(36).slice(2, 8);
+    var s = scales || { shoulders: 1, chest: 1, waist: 1, arms: 1, thighs: 1, calves: 1, neck: 1 };
+    var shW = 24 * s.shoulders;
+    var chW = 14 * s.chest;
+    var wW = 18 / s.waist;
+    var armW = 10 * s.arms;
+    var thW = 11 * s.thighs;
+    var caW = 9 * s.calves;
+
+    return '<svg viewBox="0 0 200 420" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="display:block;max-height:280px">' +
+      '<defs>' +
+      '<linearGradient id="' + uid + 'skin" x1="0%" y1="0%" x2="100%" y2="100%">' +
+      '<stop offset="0%" stop-color="rgba(255,255,255,0.14)"/><stop offset="100%" stop-color="rgba(255,255,255,0.04)"/>' +
+      '</linearGradient>' +
+      '<linearGradient id="' + uid + 'mus" x1="50%" y1="0%" x2="50%" y2="100%">' +
+      '<stop offset="0%" stop-color="' + color + '"/><stop offset="100%" stop-color="rgba(0,0,0,0.15)"/>' +
+      '</linearGradient>' +
+      '<filter id="' + uid + 'sh"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.35"/></filter>' +
+      '</defs>' +
+      '<ellipse cx="100" cy="32" rx="22" ry="26" fill="url(#' + uid + 'skin)" stroke="' + stroke + '" stroke-width="1.2"/>' +
+      '<rect x="' + (100 - 8 * s.neck) + '" y="56" width="' + (16 * s.neck) + '" height="16" rx="4" fill="url(#' + uid + 'skin)" stroke="' + stroke + '" stroke-width="0.8"/>' +
+      '<path d="M' + (100 - shW) + ' 72 Q100 66 ' + (100 + shW) + ' 72 L' + (100 + shW + 4) + ' 92 Q100 88 ' + (100 - shW - 4) + ' 92 Z" fill="url(#' + uid + 'mus)" stroke="' + stroke + '" filter="url(#' + uid + 'sh)"/>' +
+      '<path d="M' + (100 - chW) + ' 88 L100 90 L100 118 Q' + (100 - chW - 6) + ' 120 ' + (100 - chW - 8) + ' 112 Z" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      '<path d="M' + (100 + chW) + ' 88 L100 90 L100 118 Q' + (100 + chW + 6) + ' 120 ' + (100 + chW + 8) + ' 112 Z" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      '<ellipse cx="' + (100 - shW - 6) + '" cy="96" rx="' + (8 + s.shoulders * 2) + '" ry="15" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      '<ellipse cx="' + (100 + shW + 6) + '" cy="96" rx="' + (8 + s.shoulders * 2) + '" ry="15" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      '<path d="M' + (46 - armW * 0.2) + ' 112 Q' + (38 - armW * 0.3) + ' 128 ' + (40 - armW * 0.2) + ' 148 L' + (54 + armW * 0.1) + ' 148 Q' + (56 + armW * 0.1) + ' 128 ' + (62 + armW * 0.2) + ' 112 Z" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      '<path d="M' + (154 + armW * 0.2) + ' 112 Q' + (162 + armW * 0.3) + ' 128 ' + (160 + armW * 0.2) + ' 148 L' + (146 - armW * 0.1) + ' 148 Q' + (144 - armW * 0.1) + ' 128 ' + (138 - armW * 0.2) + ' 112 Z" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      '<path d="M' + (100 - wW) + ' 118 L100 120 L' + (100 + wW) + ' 118 L' + (100 + wW - 2) + ' 165 L100 167 L' + (100 - wW + 2) + ' 165 Z" fill="url(#' + uid + 'skin)" stroke="' + stroke + '"/>' +
+      '<path d="M' + (100 - thW) + ' 170 L100 172 L100 248 L' + (100 - thW - 2) + ' 246 Z" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      '<path d="M' + (100 + thW) + ' 170 L100 172 L100 248 L' + (100 + thW + 2) + ' 246 Z" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      '<path d="M' + (76 - caW * 0.1) + ' 265 Q' + (72 - caW * 0.15) + ' 288 ' + (76 - caW * 0.1) + ' 315 L' + (90 + caW * 0.05) + ' 315 Q' + (94 + caW * 0.05) + ' 288 ' + (98 + caW * 0.1) + ' 265 Z" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      '<path d="M' + (102 - caW * 0.1) + ' 265 Q' + (106 - caW * 0.15) + ' 288 ' + (110 - caW * 0.1) + ' 315 L' + (124 + caW * 0.05) + ' 315 Q' + (128 + caW * 0.05) + ' 288 ' + (124 + caW * 0.1) + ' 265 Z" fill="url(#' + uid + 'mus)" stroke="' + stroke + '"/>' +
+      (opts.label ? '<text x="100" y="408" text-anchor="middle" font-size="11" font-weight="700" fill="var(--txt3)">' + esc(opts.label) + '</text>' : '') +
+      '</svg>';
+  },
+
+  lerpScales(a, b, t) {
+    var out = {};
+    Object.keys(a).forEach(function(k) {
+      out[k] = a[k] + (b[k] - a[k]) * t;
+    });
+    return out;
+  },
+
+  comparisonPanel(archetypeId) {
+    var archetype = PhysiqueArchetypes.ARCHETYPES[archetypeId];
+    if (!archetype) return '';
+    var stats = S.g('bodyStats') || [];
+    var m = stats.length ? stats[stats.length - 1] : null;
+    var user = S.g('user') || {};
+    var height = user.height || 175;
+    var current = this.scalesFromMeasurements(m, height, null);
+    var target = this.scalesFromMeasurements(
+      Object.fromEntries(Object.entries(archetype.targetMeasurements || {}).map(function(e) {
+        return [e[0], e[1].formula(height)];
+      })),
+      height,
+      archetype
+    );
+    var photo = S.g('physiqueProgressPhoto');
+    var photoHtml = photo ?
+      '<div style="width:72px;height:96px;border-radius:12px;overflow:hidden;border:1px solid var(--border);flex-shrink:0"><img src="' + photo + '" alt="Progress" style="width:100%;height:100%;object-fit:cover"/></div>' :
+      '<button onclick="PhysiquePreview.uploadPhoto()" style="width:72px;height:96px;border-radius:12px;border:1px dashed var(--border2);background:var(--bg4);color:var(--txt3);font-size:10px;font-weight:600;cursor:pointer;touch-action:manipulation">📷 Add photo</button>';
+
+    return '<div style="margin:0 16px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--ds1)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--txt3)">🪞 Physique Preview</div>' +
+      '<div style="font-size:10px;color:var(--txt3)">' + (m ? 'From Body Map data' : 'Add measurements for accuracy') + '</div></div>' +
+      '<div style="display:flex;gap:12px;margin-bottom:14px;align-items:flex-start">' + photoHtml +
+      '<div style="flex:1;font-size:12px;color:var(--txt2);line-height:1.55">' +
+      (m ? 'Proportions derived from your latest measurements. Drag the slider to morph toward your <strong style="color:' + archetype.color + '">' + esc(archetype.name) + '</strong> target.' :
+        'Log neck, chest, waist, arms & legs in the <button onclick="go(\'bodymap\')" style="background:none;border:none;color:var(--c1);font-weight:700;cursor:pointer;font-size:12px;padding:0">Body tab</button> for a personalised preview.') +
+      '</div></div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
+      '<div style="background:rgba(0,0,0,0.2);border-radius:14px;padding:8px;border:1px solid var(--border)">' +
+      this.bodySVG(current, { color: 'rgba(255,255,255,0.35)', label: 'Current' }) + '</div>' +
+      '<div style="background:rgba(0,0,0,0.2);border-radius:14px;padding:8px;border:1px solid ' + archetype.color + '33">' +
+      this.bodySVG(target, { color: archetype.color, label: 'Target' }) + '</div></div>' +
+      '<div id="physique-morph-wrap" style="background:rgba(0,0,0,0.25);border-radius:14px;padding:10px;border:1px solid var(--border);margin-bottom:10px">' +
+      this.bodySVG(current, { color: archetype.color, label: 'Morph preview' }) + '</div>' +
+      '<input type="range" min="0" max="100" value="0" style="width:100%;accent-color:' + archetype.color + '" ' +
+      'oninput="PhysiquePreview.updateMorph(' + JSON.stringify(current) + ',' + JSON.stringify(target) + ',\'' + archetype.color + '\',this.value/100)">' +
+      '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);margin-top:4px"><span>Current</span><span>Morph</span><span>Target</span></div>' +
+      '</div>';
+  },
+
+  updateMorph(current, target, color, t) {
+    var wrap = document.getElementById('physique-morph-wrap');
+    if (!wrap) return;
+    var morphed = this.lerpScales(current, target, t);
+    wrap.innerHTML = this.bodySVG(morphed, { color: color, label: t < 0.05 ? 'Current' : t > 0.95 ? 'Target' : Math.round(t * 100) + '% toward target' });
+    if (t > 0 && t < 1 && typeof haptic === 'function') haptic(8);
+  },
+
+  uploadPhoto() {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = function() {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function() {
+        try {
+          S.set('physiqueProgressPhoto', reader.result);
+          haptic(30);
+          toast('Progress photo saved — offline on your device', 'ok');
+          go('physique-archetype', { id: PhysiqueArchetypes.getUserArchetype() });
+        } catch (e) { toast('Photo too large — try a smaller image', 'err'); }
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+};
+window.PhysiquePreview = PhysiquePreview;
+
+/* ══════════════════════════════════════════════════════
    PHYSIQUE ARCHETYPE SCREEN
 ══════════════════════════════════════════════════════ */
 reg('physique-archetype', function(data) {
@@ -279,10 +431,12 @@ reg('physique-archetype', function(data) {
       '<div style="font-size:56px;margin-bottom:8px">' + arch.icon + '</div>' +
       '<div style="font-size:20px;font-weight:900;color:' + arch.color + ';margin-bottom:6px">' + esc(arch.name) + '</div>' +
       '<div style="font-size:13px;color:var(--txt2);max-width:280px;margin:0 auto;line-height:1.6">' + esc(arch.description) + '</div>' +
-      (comp ? '<div style="margin-top:14px;display:inline-block;background:rgba(255,255,255,0.08);border-radius:20px;padding:8px 20px">' +
+      (comp ? '<div style="margin-top:14px;display:inline-block;background:rgba(255,255,255,0.08);border-radius:16px;padding:8px 20px">' +
         '<div style="font-size:28px;font-weight:900;color:' + arch.color + '">' + comp.overallPct + '%</div>' +
         '<div style="font-size:11px;color:var(--txt3)">toward target</div></div>' : '') +
       '</div>' +
+
+      PhysiquePreview.comparisonPanel(selected) +
 
       (comp && comp.measurements.some(function(m) { return m.current; }) ?
         '<div style="margin:0 16px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:16px">' +
@@ -334,7 +488,7 @@ reg('physique-archetype', function(data) {
     '</div>' +
 
     (proportion && proportion.hasMeasurements ?
-      '<div style="margin:0 16px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px">' +
+      '<div style="margin:0 16px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--ds1)">' +
       '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--txt3);margin-bottom:10px">📐 Your Current Proportions</div>' +
       proportion.ratios.map(function(r) {
         return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">' +

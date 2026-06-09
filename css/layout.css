@@ -22,8 +22,12 @@
   padding-bottom: 12px;
   scroll-behavior: smooth;
   overscroll-behavior: contain;
+  position: relative;
 }
-.screen { animation: fadeUp 0.24s var(--ease) both; }
+.screen { animation: fadeUp 0.24s var(--ease) both; position: relative; }
+.screen-enter { opacity: 0; transform: translateY(12px); }
+.screen-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.28s var(--ease), transform 0.32s var(--ease); }
+.screen-exit { opacity: 0; transform: translateY(-8px); transition: opacity 0.2s ease, transform 0.22s ease; pointer-events: none; }
 
 /* ── Bottom nav ─────────────────────────────── */
 #nav {

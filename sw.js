@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'fos-v17';
+const CACHE = 'fos-v18';
 const ASSETS = [
   './',
   './index.html',
@@ -44,7 +44,10 @@ const ASSETS = [
   './js/modules/fitness-assistant.js',
   './js/modules/quests.js',
   './manifest.json',
-  './icon.svg'
+  './icon.svg',
+  './assets/apple-touch-icon-120.png',
+  './assets/apple-touch-icon-152.png',
+  './assets/apple-touch-icon-180.png'
 ];
 
 self.addEventListener('install', e => {

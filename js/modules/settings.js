@@ -314,7 +314,7 @@ function _tabData() {
     '<div style="display:flex;flex-wrap:wrap;gap:12px">' +
     _infoStat('Workouts', String(ws.length), 'logged') +
     _infoStat('Member since', joinDate ? new Date(joinDate).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '—', '') +
-    _infoStat('Version', 'v4.4', 'FitnessOS') +
+    _infoStat('Version', 'v4.5', 'FitnessOS') +
     '</div></div>' +
 
     _sectionTitle('Profiles') +
@@ -328,9 +328,9 @@ function _tabData() {
       return '<div class="card card-solid" style="margin-bottom:14px">' +
         '<div style="font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:12px">' +
         'Built-in: <strong style="color:var(--txt)">' + exCount + '</strong> exercises. ' +
-        (st.cached ? 'wger cache: <strong style="color:var(--txt)">' + st.count + '</strong> (offline).' : 'Download wger.de library once while online — stays on your phone forever.') +
+        (st.cached ? 'wger cache: <strong style="color:var(--txt)">' + st.count + '</strong>' + (st.mediaCount ? ' · ' + st.mediaCount + ' with images/videos' : '') + ' (offline).' : 'Download wger.de library once while online — exercises, thumbnails & form videos stay on your phone.') +
         '</div>' +
-        '<button id="ex-lib-sync-btn" class="btn btn-secondary" onclick="syncExerciseLibrary()" style="width:100%">' +
+        '<button id="ex-lib-sync-btn" class="btn btn-secondary" onclick="syncExerciseLibrary(' + (st.cached ? 'true' : 'false') + ')" style="width:100%">' +
         (st.cached ? '↻ Re-sync Exercise Library' : '↓ Download Exercise Library (wger)') +
         '</button></div>';
     })() +
