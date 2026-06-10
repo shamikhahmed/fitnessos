@@ -12,21 +12,31 @@ window.reg = reg;
 function go(id, data) {
   try {
     if (!_screens[id]) throw new Error('Screen "' + id + '" not registered');
-    if (id !== _currentScreen && typeof haptic === 'function') haptic(10);
+    const sameScreen = id === _currentScreen;
+    const SCROLL_PRESERVE_SCREENS = { bodymap: 1, recovery: 1 };
+    const preserveScroll = sameScreen && (
+      (data && data.preserveScroll) || (!data && SCROLL_PRESERVE_SCREENS[id])
+    );
+    if (!sameScreen && typeof haptic === 'function') haptic(10);
     _currentScreen = id;
     const html = _screens[id](data) || '';
     const v = document.getElementById('view');
     if (!v) return;
-    v.scrollTop = 0;
+    const scrollY = preserveScroll ? v.scrollTop : 0;
     /* Boot splash in index.html has no .screen class — clear it on first navigation */
     if (!v.querySelector('.screen')) v.innerHTML = '';
     const div = document.createElement('div');
-    div.className = 'screen screen-enter';
+    div.className = sameScreen ? 'screen' : 'screen screen-enter';
     div.innerHTML = html;
     const prev = v.querySelector('.screen');
     if (prev) prev.remove();
     v.appendChild(div);
-    requestAnimationFrame(function() { div.classList.add('screen-enter-active'); });
+    if (sameScreen) {
+      v.scrollTop = scrollY;
+    } else {
+      v.scrollTop = 0;
+      requestAnimationFrame(function() { div.classList.add('screen-enter-active'); });
+    }
     const nav = document.getElementById('nav');
     const noNav = ['onboarding', 'intro', 'briefing'];
     if (nav) nav.style.display = noNav.includes(id) ? 'none' : 'flex';
@@ -1508,14 +1518,20 @@ window.NAV_TAB_ORDER = NAV_TAB_ORDER;
 
 function _normalizeNavTabs(ids) {
   let list = (ids || []).map(function(id) { return id === 'coach' ? 'assistant' : id; });
-  list = list.filter(function(id, i) { return list.indexOf(id) === i && DEFAULT_NAV_TABS.some(function(t) { return t.id === id; }); });
+  list = list.filter(function(id, i) {
+    return list.indexOf(id) === i && DEFAULT_NAV_TABS.some(function(t) { return t.id === id; });
+  });
   if (!list.includes('dashboard')) list.unshift('dashboard');
-  list = ['dashboard'].concat(list.filter(function(id) { return id !== 'dashboard'; }));
-  list.sort(function(a, b) {
+  const hasSettings = list.includes('settings');
+  let middle = list.filter(function(id) { return id !== 'dashboard' && id !== 'settings'; });
+  middle.sort(function(a, b) {
     const ai = NAV_TAB_ORDER.indexOf(a), bi = NAV_TAB_ORDER.indexOf(b);
     return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
   });
-  list = ['dashboard'].concat(list.filter(function(id) { return id !== 'dashboard'; }));
+  if (middle.length > 3) middle = middle.slice(0, 3);
+  list = hasSettings
+    ? ['dashboard'].concat(middle, ['settings'])
+    : ['dashboard'].concat(middle.slice(0, 4));
   if (list.length < 3) return CORE_NAV_DEFAULT.slice();
   if (list.length > 5) return CORE_NAV_DEFAULT.slice();
   return list;
@@ -1540,6 +1556,10 @@ window._normalizeNavTabs = _normalizeNavTabs;
 function buildNav() {
   const nav = document.getElementById('nav');
   if (!nav) return;
+  if (S.g('settings.navMigration') !== 2) {
+    S.set('settings.navTabs', _normalizeNavTabs(S.g('settings.navTabs') || CORE_NAV_DEFAULT));
+    S.set('settings.navMigration', 2);
+  }
   const ids = _getNavTabIds();
   const tabs = ids.map(function(id) { return DEFAULT_NAV_TABS.find(function(t) { return t.id === id; }); }).filter(Boolean);
   nav.innerHTML = tabs.map(function(t) {

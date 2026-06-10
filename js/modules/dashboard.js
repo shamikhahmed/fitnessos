@@ -182,15 +182,15 @@ reg('dashboard', function() {
     }).reduce(function(a, w) { return a + (w.totalVol || 0); }, 0);
     const progressSnapshot = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px;margin-bottom:14px">' +
       '<div onclick="go(\'progress\')" style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center;cursor:pointer;touch-action:manipulation">' +
-      '<div style="font-size:22px;font-weight:900;color:var(--c1);line-height:1">' + weekWkts.length + '/' + (user.weeklyGoal || 4) + '</div>' +
+      '<div class="dash-stat-n" style="font-size:22px;font-weight:900;color:var(--c1);line-height:1">' + weekWkts.length + '/' + (user.weeklyGoal || 4) + '</div>' +
       '<div style="font-size:9px;color:var(--txt3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Sessions</div>' +
       '</div>' +
       '<div onclick="go(\'progress\')" style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center;cursor:pointer;touch-action:manipulation">' +
-      '<div style="font-size:22px;font-weight:900;color:var(--c2);line-height:1">' + Math.round(weekVol) + '</div>' +
+      '<div class="dash-stat-n" style="font-size:22px;font-weight:900;color:var(--c2);line-height:1">' + Math.round(weekVol) + '</div>' +
       '<div style="font-size:9px;color:var(--txt3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Vol (kg)</div>' +
       '</div>' +
       '<div onclick="go(\'progress\')" style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center;cursor:pointer;touch-action:manipulation">' +
-      '<div style="font-size:22px;font-weight:900;color:var(--c3);line-height:1">' + thisMonthPRs + '</div>' +
+      '<div class="dash-stat-n" style="font-size:22px;font-weight:900;color:var(--c3);line-height:1">' + thisMonthPRs + '</div>' +
       '<div style="font-size:9px;color:var(--txt3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">PRs / mo</div>' +
       '</div>' +
       '</div>';

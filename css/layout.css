@@ -82,7 +82,7 @@
 /* ── Topbar ─────────────────────────────────── */
 .topbar {
   position: sticky; top: 0; z-index: 100;
-  padding: 12px 20px 12px;
+  padding: 12px 16px 12px;
   padding-top: calc(12px + var(--top-safe));
   display: flex; justify-content: space-between; align-items: flex-end;
   background: color-mix(in srgb, var(--bg) 82%, transparent);
@@ -92,6 +92,13 @@
   min-height: calc(52px + var(--top-safe));
 }
 [data-theme="light"] .topbar { background: rgba(242,242,247,0.85); }
+
+.dash-stat-n {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .topbar-left { flex: 1; }
 .topbar-greeting {
