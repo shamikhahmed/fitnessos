@@ -196,4 +196,4 @@ Karachi, Pakistan
 
 ---
 
-*Built with Claude Code — 14 sessions, production-grade output.*
+*Built by Shamikh Ahmed — offline-first Smart Coach fitness OS.*

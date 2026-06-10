@@ -282,7 +282,7 @@ const OB_STEPS = {
   2() {
     return '<div class="ob-screen">' + _dots(2) +
       '<div class="ob-title">What\'s your primary goal?</div>' +
-      '<div class="ob-sub">Your AI coach will build everything around this.</div>' +
+      '<div class="ob-sub">Your Smart Coach will build everything around this.</div>' +
       '<div class="ob-body">' +
       _opt('goal','hypertrophy','💪','Build Muscle','Gain lean muscle and improve body composition') +
       _opt('goal','fat_loss','🔥','Lose Fat','Reduce body fat while keeping muscle') +

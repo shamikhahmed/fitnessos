@@ -267,18 +267,23 @@ function _tabAppearance(u) {
       '<button class="btn btn-'+(u.units===unit?'primary':'secondary')+' btn-sm" style="flex:1" onclick="_setSetting(\'user.units\',\''+unit+'\');go(\'settings\',{tab:\'appearance\'})">'+unit.charAt(0).toUpperCase()+unit.slice(1)+'</button>'
     ).join('') + '</div>' +
 
+    _sectionTitle('Performance') +
+    _toggle('Low Power Mode', 'settings.lowPower', S.g('settings.lowPower') === true) +
+    '<div style="font-size:12px;color:var(--txt3);margin:-6px 0 14px;padding:0 2px">Disables animated background for smoother scrolling on older phones.</div>' +
+
     _sectionTitle('Navigation Tabs') +
-    '<div style="font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.5">Tap to toggle which tabs appear in the bottom nav (minimum 3).</div>' +
+    '<div style="font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.5">Home is always first. Tap to toggle tabs (3–5). Default: Home · Train · Coach · Recover · Me.</div>' +
     (function() {
-      const allTabs = ['dashboard','workout','hub','bodymap','settings','recovery','coach','progress','rehab','anatomy','calisthenics','search','assistant'];
+      const allTabs = ['dashboard','workout','assistant','recovery','hub','bodymap','settings','coach','progress','rehab','anatomy','calisthenics','search'];
       const tabIcons = {dashboard:'🏠',workout:'💪',hub:'🔍',bodymap:'🫀',settings:'⚙️',recovery:'😴',coach:'🤖',progress:'📈',rehab:'🩹',anatomy:'🔬',calisthenics:'🤸',search:'🔎',assistant:'💬'};
+      const tabLabels = {dashboard:'Home',workout:'Train',assistant:'Smart Coach',coach:'Smart Coach',recovery:'Recover',hub:'Explore',bodymap:'Body',settings:'Me',progress:'Stats',rehab:'Rehab',anatomy:'Anatomy',calisthenics:'Skills',search:'Search'};
       const cur = (typeof _getNavTabIds === 'function' ? _getNavTabIds() : (S.g('settings.navTabs') || CORE_NAV_DEFAULT));
       return allTabs.map(function(t) {
         const active = cur.includes(t);
         return '<div onclick="toggleNavTab(\''+t+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;touch-action:manipulation">' +
           '<div style="display:flex;align-items:center;gap:12px">' +
           '<span style="font-size:20px">'+tabIcons[t]+'</span>' +
-          '<span style="font-size:14px;font-weight:600;color:var(--txt)">'+t.charAt(0).toUpperCase()+t.slice(1)+'</span>' +
+          '<span style="font-size:14px;font-weight:600;color:var(--txt)">'+(tabLabels[t]||t)+'</span>' +
           '</div>' +
           '<div style="width:24px;height:24px;border-radius:50%;border:2px solid '+(active?'var(--c1)':'var(--border)')+';background:'+(active?'var(--c1)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff">'+(active?'✓':'')+'</div>' +
           '</div>';
@@ -381,7 +386,15 @@ function _infoStat(label, val, sub) {
 }
 
 /* ── Actions ── */
-window._setSetting = function(key, val) { S.set(key, val); };
+window._setSetting = function(key, val) {
+  S.set(key, val);
+  if (key === 'settings.lowPower' && window._fitnessCanvas) {
+    if (val) window._fitnessCanvas.stop();
+    else window._fitnessCanvas.start();
+    const c = document.getElementById('bg-canvas');
+    if (c) c.style.display = val ? 'none' : '';
+  }
+};
 
 window.toggleInjuryRecovered = function(idx) {
   const injuries = S.g('user.injuries') || [];
@@ -503,16 +516,18 @@ window.confirmClearData = function() {
 };
 
 window.toggleNavTab = function(tab) {
+  const key = tab === 'coach' ? 'assistant' : tab;
   const cur = (typeof _getNavTabIds === 'function' ? _getNavTabIds() : (S.g('settings.navTabs') || CORE_NAV_DEFAULT)).slice();
-  const idx = cur.indexOf(tab);
+  const idx = cur.indexOf(key);
   if (idx >= 0) {
     if (cur.length <= 3) { toast('Minimum 3 tabs required', 'warn'); return; }
     cur.splice(idx, 1);
   } else {
-    if (cur.length >= 6) { toast('Maximum 6 tabs in nav', 'warn'); return; }
-    cur.push(tab);
+    if (cur.length >= 5) { toast('Maximum 5 tabs in nav', 'warn'); return; }
+    cur.push(key);
   }
-  S.set('settings.navTabs', cur);
+  const normalized = typeof _normalizeNavTabs === 'function' ? _normalizeNavTabs(cur) : cur;
+  S.set('settings.navTabs', normalized);
   buildNav();
   go('settings', { tab: 'appearance' });
 };

@@ -24,7 +24,10 @@
   overscroll-behavior: contain;
   position: relative;
 }
-.screen { animation: fadeUp 0.24s var(--ease) both; position: relative; }
+.screen { animation: fadeUp 0.18s var(--ease) both; position: relative; }
+@media (prefers-reduced-motion: reduce) {
+  .screen, .anim-fade-up, .stagger > * { animation: none !important; }
+}
 .screen-enter { opacity: 0; transform: translateY(12px); }
 .screen-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.28s var(--ease), transform 0.32s var(--ease); }
 .screen-exit { opacity: 0; transform: translateY(-8px); transition: opacity 0.2s ease, transform 0.22s ease; pointer-events: none; }
@@ -33,12 +36,11 @@
 #nav {
   position: relative; flex-shrink: 0; z-index: 200;
   height: calc(var(--nav-h) + var(--safe));
-  display: flex; align-items: flex-start;
-  padding-top: 8px;
-  padding-bottom: var(--safe);
-  background: color-mix(in srgb, var(--bg2) 88%, transparent);
-  backdrop-filter: blur(32px) saturate(200%);
-  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  display: flex; align-items: flex-start; justify-content: space-around;
+  padding: 8px 4px var(--safe);
+  background: color-mix(in srgb, var(--bg2) 94%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
   border-top: 1px solid var(--border);
 }
 
@@ -47,9 +49,10 @@
 }
 
 .nb {
-  flex: 1; display: flex; flex-direction: column;
+  flex: 1 1 0; min-width: 0; max-width: 76px;
+  display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 4px; padding: 4px 2px 6px;
+  gap: 3px; padding: 4px 2px 6px;
   background: none; border: none;
   color: var(--txt3);
   transition: color 0.2s var(--ease);
@@ -57,8 +60,8 @@
   position: relative; min-height: 44px;
 }
 
-.nb svg { width: 24px; height: 24px; transition: transform 0.22s var(--spring), filter 0.2s; }
-.nb span { font-size: 10px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; transition: color 0.2s; }
+.nb svg { width: 22px; height: 22px; flex-shrink: 0; transition: transform 0.22s var(--spring), filter 0.2s; }
+.nb span { font-size: 10px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; transition: color 0.2s; }
 
 /* Active indicator pill */
 .nb::before {

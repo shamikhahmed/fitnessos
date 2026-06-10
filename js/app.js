@@ -24,10 +24,7 @@ function go(id, data) {
     div.className = 'screen screen-enter';
     div.innerHTML = html;
     const prev = v.querySelector('.screen');
-    if (prev) {
-      prev.classList.add('screen-exit');
-      setTimeout(function() { if (prev.parentNode) prev.remove(); }, 220);
-    }
+    if (prev) prev.remove();
     v.appendChild(div);
     requestAnimationFrame(function() { div.classList.add('screen-enter-active'); });
     const nav = document.getElementById('nav');
@@ -143,71 +140,111 @@ window.buildRing = buildRing;
 /* ══════════════════════════════════════════════════════
    CANVAS ANIMATION
 ══════════════════════════════════════════════════════ */
+let _canvasRunning = false;
+
 function initCanvas() {
   const c = document.getElementById('bg-canvas');
   if (!c) return;
-  const ctx = c.getContext('2d');
-  let W, H;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    c.style.display = 'none';
+    return;
+  }
+  if (S.g('settings.lowPower') === true) {
+    c.style.display = 'none';
+    return;
+  }
+
+  const ctx = c.getContext('2d', { alpha: true });
+  let W, H, lastFrame = 0;
   const orbs = [];
+  let rgb1 = [0, 213, 255], rgb2 = [123, 95, 255];
+  const isMobile = window.innerWidth < 500;
+  const frameInterval = isMobile ? 48 : 32;
+
+  function cacheAccentRGB() {
+    const s = getComputedStyle(document.documentElement);
+    function parse(primary) {
+      const v = s.getPropertyValue(primary ? '--orb1' : '--orb2').trim().replace('#', '');
+      if (v.length === 6) {
+        return [parseInt(v.slice(0, 2), 16), parseInt(v.slice(2, 4), 16), parseInt(v.slice(4, 6), 16)];
+      }
+      return primary ? [0, 213, 255] : [123, 95, 255];
+    }
+    rgb1 = parse(true);
+    rgb2 = parse(false);
+  }
 
   function resize() {
     W = c.width = window.innerWidth;
     H = c.height = window.innerHeight;
   }
 
-  function getAccentRGB(primary) {
-    const s = getComputedStyle(document.documentElement);
-    const v = s.getPropertyValue(primary ? '--orb1' : '--orb2').trim();
-    if (!v) return primary ? [0,213,255] : [123,95,255];
-    const hex = v.replace('#','');
-    if (hex.length === 6) {
-      return [parseInt(hex.slice(0,2),16), parseInt(hex.slice(2,4),16), parseInt(hex.slice(4,6),16)];
-    }
-    return [0,213,255];
-  }
-
   function initOrbs() {
     orbs.length = 0;
-    const count = window.innerWidth < 400 ? 3 : 4;
+    const count = isMobile ? 2 : 3;
     for (let i = 0; i < count; i++) {
       orbs.push({
         x: Math.random() * W,
         y: Math.random() * H,
-        r: Math.random() * 200 + 120,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: (Math.random() - 0.5) * 0.35,
-        primary: i < 2,
+        r: (isMobile ? 140 : 180) + Math.random() * 80,
+        vx: (Math.random() - 0.5) * 0.22,
+        vy: (Math.random() - 0.5) * 0.22,
+        primary: i === 0,
         phase: Math.random() * Math.PI * 2
       });
     }
   }
 
   function draw(ts) {
+    if (!_canvasRunning) return;
+    if (ts - lastFrame < frameInterval) {
+      requestAnimationFrame(draw);
+      return;
+    }
+    lastFrame = ts;
     ctx.clearRect(0, 0, W, H);
     orbs.forEach(function(o) {
-      const pulse = 1 + Math.sin((ts * 0.0008) + o.phase) * 0.12;
+      const pulse = 1 + Math.sin((ts * 0.0006) + o.phase) * 0.08;
       const r = o.r * pulse;
-      const rgb = getAccentRGB(o.primary);
-      const alpha = o.primary ? 0.055 : 0.038;
+      const rgb = o.primary ? rgb1 : rgb2;
+      const alpha = o.primary ? (isMobile ? 0.04 : 0.05) : (isMobile ? 0.028 : 0.034);
       const grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, r);
-      grad.addColorStop(0, 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+alpha+')');
-      grad.addColorStop(0.5, 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+(alpha*0.4)+')');
-      grad.addColorStop(1, 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0)');
+      grad.addColorStop(0, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')');
+      grad.addColorStop(1, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0)');
+      ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(o.x, o.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = grad;
       ctx.fill();
-      o.x += o.vx; o.y += o.vy;
+      o.x += o.vx;
+      o.y += o.vy;
       if (o.x < -r || o.x > W + r) o.vx *= -1;
       if (o.y < -r || o.y > H + r) o.vy *= -1;
     });
     requestAnimationFrame(draw);
   }
 
-  resize();
-  initOrbs();
-  requestAnimationFrame(draw);
+  function start() {
+    if (_canvasRunning) return;
+    _canvasRunning = true;
+    c.style.display = '';
+    cacheAccentRGB();
+    resize();
+    initOrbs();
+    requestAnimationFrame(draw);
+  }
+
+  function stop() {
+    _canvasRunning = false;
+    ctx.clearRect(0, 0, c.width, c.height);
+  }
+
+  window._fitnessCanvas = { start: start, stop: stop, refresh: cacheAccentRGB };
+  start();
   window.addEventListener('resize', function() { resize(); initOrbs(); });
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) stop();
+    else start();
+  });
 }
 
 /* ══════════════════════════════════════════════════════
@@ -216,6 +253,7 @@ function initCanvas() {
 function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t||'carbon');
   S.set('user.theme', t||'carbon');
+  if (window._fitnessCanvas && window._fitnessCanvas.refresh) window._fitnessCanvas.refresh();
 }
 window.applyTheme = applyTheme;
 
@@ -1072,7 +1110,7 @@ const SupplementEngine = {
 window.SupplementEngine = SupplementEngine;
 
 /* ══════════════════════════════════════════════════════
-   ENGINE — AI COACH
+   ENGINE — SMART COACH
 ══════════════════════════════════════════════════════ */
 const CoachEngine = {
   insights() {
@@ -1447,6 +1485,7 @@ window.PlanEngine = PlanEngine;
    NAV
 ══════════════════════════════════════════════════════ */
 const CORE_NAV_DEFAULT = ['dashboard', 'workout', 'assistant', 'recovery', 'settings'];
+const NAV_TAB_ORDER = ['dashboard', 'workout', 'assistant', 'recovery', 'hub', 'bodymap', 'progress', 'coach', 'settings', 'rehab', 'anatomy', 'calisthenics', 'search'];
 
 const DEFAULT_NAV_TABS = [
   { id:'dashboard', label:'Home',    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
@@ -1456,30 +1495,47 @@ const DEFAULT_NAV_TABS = [
   { id:'settings',  label:'Me',      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>' },
   { id:'recovery',  label:'Recover', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' },
   { id:'coach',     label:'Coach',   icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' },
-  { id:'progress',  label:'Progress',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>' },
+  { id:'progress',  label:'Stats',   icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>' },
   { id:'rehab',     label:'Rehab',   icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4.5 12.5l3 3 8-8"/><circle cx="12" cy="12" r="10"/></svg>' },
   { id:'anatomy',   label:'Anatomy', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 6c2.2 0 4 1.8 4 4v4h-2v4h-4v-4H8v-4c0-2.2 1.8-4 4-4z"/></svg>' },
   { id:'calisthenics', label:'Skills', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4m0 12v4M2 12h4m12 0h4M4.9 4.9l2.8 2.8m8.6 8.6l2.8 2.8M4.9 19.1l2.8-2.8m8.6-8.6l2.8-2.8"/></svg>' },
   { id:'search',    label:'Search',  icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' },
-  { id:'assistant', label:'AI',      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' }
+  { id:'assistant', label:'Coach',   icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' }
 ];
 window.DEFAULT_NAV_TABS = DEFAULT_NAV_TABS;
 window.CORE_NAV_DEFAULT = CORE_NAV_DEFAULT;
+window.NAV_TAB_ORDER = NAV_TAB_ORDER;
+
+function _normalizeNavTabs(ids) {
+  let list = (ids || []).map(function(id) { return id === 'coach' ? 'assistant' : id; });
+  list = list.filter(function(id, i) { return list.indexOf(id) === i && DEFAULT_NAV_TABS.some(function(t) { return t.id === id; }); });
+  if (!list.includes('dashboard')) list.unshift('dashboard');
+  list = ['dashboard'].concat(list.filter(function(id) { return id !== 'dashboard'; }));
+  list.sort(function(a, b) {
+    const ai = NAV_TAB_ORDER.indexOf(a), bi = NAV_TAB_ORDER.indexOf(b);
+    return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+  });
+  list = ['dashboard'].concat(list.filter(function(id) { return id !== 'dashboard'; }));
+  if (list.length < 3) return CORE_NAV_DEFAULT.slice();
+  if (list.length > 5) return CORE_NAV_DEFAULT.slice();
+  return list;
+}
 
 function _getNavTabIds() {
   const legacy = S.g('nav.tabs');
   if (legacy && !S.g('settings.navTabs')) {
-    S.set('settings.navTabs', legacy);
+    S.set('settings.navTabs', _normalizeNavTabs(legacy));
     S.set('nav.tabs', null);
   }
   const saved = S.g('settings.navTabs');
-  if (saved && Array.isArray(saved) && saved.length > 6) {
-    S.set('settings.navTabs', CORE_NAV_DEFAULT.slice());
-    return CORE_NAV_DEFAULT.slice();
+  if (saved && Array.isArray(saved) && saved.length >= 3) {
+    const normalized = _normalizeNavTabs(saved);
+    if (JSON.stringify(normalized) !== JSON.stringify(saved)) S.set('settings.navTabs', normalized);
+    return normalized;
   }
-  if (saved && Array.isArray(saved) && saved.length >= 3) return saved;
   return CORE_NAV_DEFAULT.slice();
 }
+window._normalizeNavTabs = _normalizeNavTabs;
 
 function buildNav() {
   const nav = document.getElementById('nav');
