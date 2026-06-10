@@ -1,8 +1,8 @@
-# FitnessOS — iOS Info.plist notes
+# PulseCap — iOS Info.plist notes
 
 After `npm run cap:init`, edit `ios/App/App/Info.plist`:
 
-- `CFBundleDisplayName`: FitnessOS
+- `CFBundleDisplayName`: PulseCap
 - `NSPhotoLibraryUsageDescription`: Not required for this app.
 - `ITSAppUsesNonExemptEncryption`: false (standard HTTPS only)
 

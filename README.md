@@ -9,7 +9,7 @@
 
 ## What it is
 
-FitnessOS Pro is a comprehensive fitness tracking PWA built entirely in vanilla HTML, CSS, and JavaScript — no frameworks, no CDNs, no backend. It runs fully offline, installs on any device, and stores all data locally.
+PulseCap Pro is a comprehensive fitness tracking PWA built entirely in vanilla HTML, CSS, and JavaScript — no frameworks, no CDNs, no backend. It runs fully offline, installs on any device, and stores all data locally.
 
 Built by Shamikh Ahmed across 14 development sessions as a production-grade personal project.
 
@@ -121,7 +121,7 @@ manifest.json       — PWA manifest
 
 ## Roadmap
 
-High-value features that fit FitnessOS’s workout-first, offline-first, Apple-native direction:
+High-value features that fit PulseCap’s workout-first, offline-first, Apple-native direction:
 
 1. **Apple Watch companion** — rest timer, set logging, and heart-rate-aware readiness synced via local QR/handoff (no cloud required).
 2. **True AR physique overlay** — camera body-segmentation with measurement-calibrated muscle highlight (extends v4.4 preview).
@@ -165,7 +165,7 @@ High-value features that fit FitnessOS’s workout-first, offline-first, Apple-n
 
 ```bash
 git clone https://github.com/shamikhahmed/PulseCap.git
-cd FitnessOS
+cd PulseCap
 # Open index.html directly or serve with any static server:
 npx serve .
 # or

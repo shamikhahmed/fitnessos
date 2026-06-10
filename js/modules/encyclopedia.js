@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Fitness Encyclopedia ── */
+/* ── PulseCap — Fitness Encyclopedia ── */
 
 /* ══════════════════════════════════════════════════════
    MOBILITY ENCYCLOPEDIA

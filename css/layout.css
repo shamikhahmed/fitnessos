@@ -1,4 +1,4 @@
-/* FitnessOS — Layout */
+/* PulseCap — Layout */
 
 /* ── Canvas background ──────────────────────── */
 #bg-canvas {
@@ -12,6 +12,7 @@
   height: 100vh; height: 100dvh;
   display: flex; flex-direction: column;
   overflow: hidden; background: transparent;
+  width: 100%;
 }
 
 /* ── View ───────────────────────────────────── */
@@ -420,4 +421,16 @@ input[type=range] {
   .page.on { animation: fos-page-in .22s ease-out; }
   @keyframes fos-toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes fos-page-in { from { opacity: .92; } to { opacity: 1; } }
+}
+
+/* ── Desktop shell (Safari / wide screens) ── */
+@media (min-width: 900px) {
+  html { background: #030508; }
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 0 80px rgba(0,0,0,.55);
+    border-left: 1px solid rgba(255,255,255,.04);
+    border-right: 1px solid rgba(255,255,255,.04);
+  }
 }

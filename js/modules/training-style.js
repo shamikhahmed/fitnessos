@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS Phase 3 — Training Style Detector + Smart Exercise Rotation ── */
+/* ── PulseCap Phase 3 — Training Style Detector + Smart Exercise Rotation ── */
 
 /* ══════════════════════════════════════════════════════
    TRAINING STYLE DETECTOR

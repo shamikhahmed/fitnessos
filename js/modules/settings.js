@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4 — Settings (7 sub-tabs) ── */
+/* ── PulseCap v4 — Settings (7 sub-tabs) ── */
 
 let _activeSettingsTab = 'profile';
 
@@ -322,7 +322,7 @@ function _tabData() {
     '<div style="display:flex;flex-wrap:wrap;gap:12px">' +
     _infoStat('Workouts', String(ws.length), 'logged') +
     _infoStat('Member since', joinDate ? new Date(joinDate).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '—', '') +
-    _infoStat('Version', 'v4.5.1', 'FitnessOS') +
+    _infoStat('Version', 'v4.5.1', 'PulseCap') +
     '</div></div>' +
 
     _sectionTitle('Profiles') +
@@ -353,7 +353,7 @@ function _tabData() {
     _sectionTitle('Danger Zone') +
     '<button class="btn btn-danger" onclick="confirmClearData()">🗑️ Clear All Data</button>' +
 
-    '<div style="margin-top:32px;text-align:center;color:var(--txt3);font-size:13px">FitnessOS v4 · by <strong>Shamikh Ahmed</strong></div>' +
+    '<div style="margin-top:32px;text-align:center;color:var(--txt3);font-size:13px">PulseCap v4 · by <strong>Shamikh Ahmed</strong></div>' +
     '</div>';
 }
 
@@ -482,7 +482,7 @@ window.exportData = function() {
   const blob = new Blob([data], { type:'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'fitnessos-backup-'+today()+'.json';
+  a.href = url; a.download = 'PulseCap-backup-'+today()+'.json';
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
   toast('Backup exported!', 'ok');

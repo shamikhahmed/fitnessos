@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Calisthenics Skill Progressions ── */
+/* ── PulseCap — Calisthenics Skill Progressions ── */
 
 var CALIS_SKILLS = {
   pullup: {

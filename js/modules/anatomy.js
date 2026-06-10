@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Muscle Anatomy Database ── */
+/* ── PulseCap — Muscle Anatomy Database ── */
 
 const MUSCLE_DB = {
   // NECK

@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Physique Scoring + Muscle Growth Simulator ── */
+/* ── PulseCap — Physique Scoring + Muscle Growth Simulator ── */
 
 /* ══════════════════════════════════════════════════════
    PHYSIQUE SCORING ENGINE

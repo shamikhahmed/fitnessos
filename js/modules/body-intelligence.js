@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS Phase 3 — Body Intelligence Layer ── */
+/* ── PulseCap Phase 3 — Body Intelligence Layer ── */
 
 /* ══════════════════════════════════════════════════════
    1. BODY RESPONSE MODEL

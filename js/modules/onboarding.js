@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4 — Onboarding (12 steps) ── */
+/* ── PulseCap v4 — Onboarding (12 steps) ── */
 
 /* ── Intro Slides ── */
 let _introSlide = 0;
@@ -8,7 +8,7 @@ const INTRO_SLIDES = [
   {
     emoji: '⚡',
     grad: 'linear-gradient(135deg, #00d5ff, #6b5fff)',
-    title: 'FitnessOS Pro',
+    title: 'PulseCap Pro',
     sub: 'The most advanced offline fitness operating system ever built for your iPhone.',
     bullets: [
       '🧠 5 AI engines that adapt to your body',

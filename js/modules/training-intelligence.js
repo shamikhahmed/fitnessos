@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Training Intelligence Suite ── */
+/* ── PulseCap — Training Intelligence Suite ── */
 
 /* ══════════════════════════════════════════════════════
    TRAINING AGE ENGINE

@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS Phase 3 — Quests, Missions, Achievement 2.0, Streak Protection ── */
+/* ── PulseCap Phase 3 — Quests, Missions, Achievement 2.0, Streak Protection ── */
 
 /* ══════════════════════════════════════════════════════
    QUEST ENGINE — Auto-generated from user weak points

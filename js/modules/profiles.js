@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4 — Profile Switcher ── */
+/* ── PulseCap v4 — Profile Switcher ── */
 
 reg('profiles', function() {
   const profs = S.profiles();

@@ -1,10 +1,10 @@
-# FitnessOS — Product Presentation
+# PulseCap — Product Presentation
 
 ---
 
 ## Slide 1 — Title
 
-# FitnessOS
+# PulseCap
 ### Your Intelligent Training Partner
 
 *300+ exercises · Smart Coach · Offline PWA*
@@ -25,7 +25,7 @@ Serious lifters need **depth** — not generic 10-exercise libraries.
 
 ## Slide 3 — Solution
 
-**FitnessOS Pro** — production-grade PWA:
+**PulseCap Pro** — production-grade PWA:
 
 - 300+ exercise database with coaching cues
 - Active set logger + PR detection + rest timer

@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS Phase 3 — Physique Archetype + Proportion Analyzer ── */
+/* ── PulseCap Phase 3 — Physique Archetype + Proportion Analyzer ── */
 
 /* ══════════════════════════════════════════════════════
    PHYSIQUE ARCHETYPE SYSTEM
@@ -484,7 +484,7 @@ reg('physique-archetype', function(data) {
   return '<div class="topbar"><button onclick="history.length>1?history.back():go(\'hub\')" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:14px;padding:0 16px;touch-action:manipulation" aria-label="Back">←</button><div class="topbar-title">Physique Archetype</div></div>' +
 
     '<div style="padding:16px 16px 8px">' +
-    '<div style="font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:4px">Choose your physique goal. FitnessOS will show your current measurements vs target proportions and guide your training.</div>' +
+    '<div style="font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:4px">Choose your physique goal. PulseCap will show your current measurements vs target proportions and guide your training.</div>' +
     '</div>' +
 
     (proportion && proportion.hasMeasurements ?

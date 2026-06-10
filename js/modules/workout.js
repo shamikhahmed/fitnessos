@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4 — Workout Logger + Exercise Database ── */
+/* ── PulseCap v4 — Workout Logger + Exercise Database ── */
 
 /* ── Guidance System ── */
 const GUIDANCE = {

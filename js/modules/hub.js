@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Knowledge & Explore Hub ── */
+/* ── PulseCap — Knowledge & Explore Hub ── */
 
 reg('hub', function() {
   const user = S.g('user') || {};

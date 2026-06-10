@@ -1,9 +1,9 @@
-# FitnessOS — Security Notes
+# PulseCap — Security Notes
 
 ## Local-only data
 
 - Workouts, body stats, PRs, and Smart Coach history live in **localStorage** on your device.
-- **No telemetry**, analytics SDKs, or server database ship with FitnessOS.
+- **No telemetry**, analytics SDKs, or server database ship with PulseCap.
 - Protect your device passcode and exported backup files — anyone with the file can read your training data.
 
 ## Smart Coach
@@ -23,4 +23,4 @@
 
 ## Reporting
 
-Open a private security issue on the [FitnessOS GitHub repo](https://github.com/shamikhahmed/PulseCap) for vulnerabilities.
+Open a private security issue on the [PulseCap GitHub repo](https://github.com/shamikhahmed/PulseCap) for vulnerabilities.

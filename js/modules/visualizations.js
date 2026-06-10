@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Advanced Visualizations ── */
+/* ── PulseCap — Advanced Visualizations ── */
 
 /* ══════════════════════════════════════════════════════
    MUSCLE RECOVERY HEATMAP

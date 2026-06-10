@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS Phase 3 — Offline Fitness Assistant (Chat) ── */
+/* ── PulseCap Phase 3 — Offline Fitness Assistant (Chat) ── */
 
 /* ══════════════════════════════════════════════════════
    INTENT DETECTION ENGINE

@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4.4 — Body Calculators ── */
+/* ── PulseCap v4.4 — Body Calculators ── */
 
 const _CAL_STATUS_COLORS = {
   healthy: '#30d158', athletic: '#00d5ff', elite: '#6b5fff',

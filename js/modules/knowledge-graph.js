@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Exercise Knowledge Graph (EKG) ── */
+/* ── PulseCap — Exercise Knowledge Graph (EKG) ── */
 
 const EKG = {
   _db: {

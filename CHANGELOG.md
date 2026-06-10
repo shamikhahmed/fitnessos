@@ -1,4 +1,4 @@
-# Changelog — FitnessOS
+# Changelog — PulseCap
 
 ## 4.5.1 (2026-06-10)
 - Portfolio CTO pass: PWA icons (192/512 maskable), service worker cache bump (`fos-v20`)

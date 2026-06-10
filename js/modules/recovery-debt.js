@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Recovery Debt Engine + Fatigue Forecasting + Daily AI Decision ── */
+/* ── PulseCap — Recovery Debt Engine + Fatigue Forecasting + Daily AI Decision ── */
 
 /* ══════════════════════════════════════════════════════
    RECOVERY DEBT ENGINE

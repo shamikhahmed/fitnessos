@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 
-test.describe('FitnessOS smoke', () => {
+test.describe('PulseCap smoke', () => {
   test('loads shell without fatal errors', async ({ page }) => {
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));

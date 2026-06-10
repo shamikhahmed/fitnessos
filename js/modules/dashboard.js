@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Dashboard ── */
+/* ── PulseCap — Dashboard ── */
 
 const THEMES = ['carbon','aurora','sunset','midnight','electric','stealth','forest','light'];
 function _nextTheme(t) { const i = THEMES.indexOf(t); return THEMES[(i+1)%THEMES.length]; }

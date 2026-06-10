@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4 — Progress Screen ── */
+/* ── PulseCap v4 — Progress Screen ── */
 
 reg('progress', function() {
   const ws = S.g('workouts') || [];

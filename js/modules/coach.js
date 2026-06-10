@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4 — Coach Screen ── */
+/* ── PulseCap v4 — Coach Screen ── */
 
 const COACH_META = {
   alex: { name:'Alex', emoji:'🔥', title:'Drill Sergeant', color:'#ff4444' },

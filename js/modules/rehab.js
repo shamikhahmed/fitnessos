@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Injury Rehab Database ── */
+/* ── PulseCap — Injury Rehab Database ── */
 
 var INJURY_DB = {
   shoulder_dislocation: {

@@ -1,6 +1,6 @@
-# FitnessOS — User Guide
+# PulseCap — User Guide
 
-FitnessOS is your **Smart Coach fitness operating system** — a comprehensive, offline-first PWA for workouts, cardio, body tracking, nutrition, and coaching.
+PulseCap is your **Smart Coach fitness operating system** — a comprehensive, offline-first PWA for workouts, cardio, body tracking, nutrition, and coaching.
 
 **Live app:** https://shamikhahmed.github.io/PulseCap
 
@@ -8,7 +8,7 @@ FitnessOS is your **Smart Coach fitness operating system** — a comprehensive, 
 
 ## Getting started
 
-1. Open FitnessOS in Safari (recommended on iPhone).
+1. Open PulseCap in Safari (recommended on iPhone).
 2. Watch the **4 intro slides**, then complete **12-step onboarding** (goals, equipment, injuries, split).
 3. Land on the **Dashboard** with your daily briefing and readiness score.
 4. Install: **Share → Add to Home Screen**.
@@ -136,4 +136,4 @@ Coach adapts to your goal (fat loss, strength, hypertrophy, recomp, athletic, ma
 
 ---
 
-*FitnessOS © 2026 Shamikh Ahmed*
+*PulseCap © 2026 Shamikh Ahmed*

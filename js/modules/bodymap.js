@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4 — Body Map & Measurements ── */
+/* ── PulseCap v4 — Body Map & Measurements ── */
 
 let _bodyView = 'front';
 let _measUnit = 'cm';

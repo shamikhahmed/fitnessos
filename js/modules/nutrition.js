@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4 — Nutrition / Supplements / Water ── */
+/* ── PulseCap v4 — Nutrition / Supplements / Water ── */
 
 reg('nutrition', function() {
   const user = S.g('user') || {};

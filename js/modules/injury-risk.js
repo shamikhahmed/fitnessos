@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Injury Risk Forecasting Engine ── */
+/* ── PulseCap — Injury Risk Forecasting Engine ── */
 
 const InjuryRiskEngine = {
 

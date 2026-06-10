@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS — Advanced Offline Search Engine ── */
+/* ── PulseCap — Advanced Offline Search Engine ── */
 
 const FitnessSearch = {
 

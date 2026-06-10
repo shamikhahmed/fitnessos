@@ -1,5 +1,5 @@
 'use strict';
-/* ── FitnessOS v4 — Recovery Screen ── */
+/* ── PulseCap v4 — Recovery Screen ── */
 
 reg('recovery', function() {
   const rec = S.g('recovery') || {};
