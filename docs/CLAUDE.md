@@ -3,7 +3,7 @@
 ## Project
 - Live: https://shamikhahmed.github.io/PulseCap
 - Repo: github.com/shamikhahmed/PulseCap
-- Local: ~/Desktop/Projects/PulseCap
+- Local: `<workspace-root>/PulseCap`
 - Owner: Shamikh Ahmed, Karachi PK
 
 ## Stack (never change these rules)
