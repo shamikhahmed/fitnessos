@@ -1,6 +1,6 @@
 /* FitnessOS — identity overlay (theme in base.css) */
 
 .dash-stat-n, .stat-v {
-  font-family: "Rajdhani", "Sora", sans-serif;
+  font-family: var(--font);
   letter-spacing: -0.02em;
 }

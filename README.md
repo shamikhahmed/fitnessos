@@ -130,7 +130,7 @@ High-value features that fit PulseCap’s workout-first, offline-first, Apple-na
 5. **Gym floor mode** — extra-large tap targets, always-on display, haptic-only rest alerts for busy commercial gyms.
 6. **HealthKit / Google Fit import** — sleep, steps, and weight pull to enrich readiness without manual check-ins.
 7. **Plate calculator & bar math** — per-gym plate inventory (kg/lb) with visual loading diagram.
-8. **Workout templates marketplace** — share/import JSON programs peer-to-peer (AirDrop-style) with no server.
+8. **Program sharing (planned)** — peer-to-peer JSON import/export for workout templates; not in the app yet.
 9. **Voice set logging** — hands-free “135 for 8” parsing during compounds with spotter present.
 10. **Progress photo timeline** — side-by-side physique photos aligned to measurement logs and archetype targets.
 

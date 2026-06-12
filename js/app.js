@@ -55,6 +55,19 @@ function go(id, data) {
 }
 window.go = go;
 
+/** ?demo=1 — silent demo profile with sample workout history (screenshots / walkthroughs). */
+function bootDemoIfRequested() {
+  try {
+    var demo = new URLSearchParams(location.search).get('demo') === '1';
+    if (demo && typeof S !== 'undefined' && S.createDemo) {
+      S.createDemo();
+      return true;
+    }
+  } catch (e) { /* ignore */ }
+  return false;
+}
+window.bootDemoIfRequested = bootDemoIfRequested;
+
 /* ══════════════════════════════════════════════════════
    HELPERS
 ══════════════════════════════════════════════════════ */

@@ -10,10 +10,6 @@
   <meta name="theme-color" content="#000000">
   <meta name="format-detection" content="telephone=no">
   <meta name="author" content="Capricorn Systems">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <!-- Apple splash / startup feel -->
   <link rel="apple-touch-icon" href="icon-512.png">
   <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
@@ -196,6 +192,7 @@ window.addEventListener('offline', function(){ document.getElementById('offline-
 
   <script>
     S.init();
+    const _isDemo = bootDemoIfRequested();
     const _savedMode = S.g('user.mode');
     if (_savedMode === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
@@ -206,7 +203,9 @@ window.addEventListener('offline', function(){ document.getElementById('offline-
     if (typeof loadCustomExercises === 'function') loadCustomExercises();
     if (typeof ExerciseLibrary !== 'undefined') ExerciseLibrary.mergeIntoExDB();
     initCanvas();
-    if (!S.g('onboarded')) {
+    if (_isDemo) {
+      go('dashboard');
+    } else if (!S.g('onboarded')) {
       go('intro');
     } else {
       go('dashboard');

@@ -11,7 +11,7 @@
   --r20: 14px; --r24: 16px; --r32: 20px; --r999: 999px;
 
   /* Typography */
-  --font: "Sora", -apple-system, "SF Pro Display", "SF Pro Text", Inter, system-ui, sans-serif;
+  --font: -apple-system, "SF Pro Display", "SF Pro Text", "Segoe UI", Inter, system-ui, sans-serif;
 
   /* Animations */
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -330,6 +330,6 @@ img { max-width: 100%; }
 
 /* Athletic display typography */
 h1, h2, h3, .topbar-title, .topbar-greeting, .btn, .nb span {
-  font-family: "Rajdhani", "Sora", sans-serif;
+  font-family: var(--font);
   letter-spacing: 0.04em;
 }
